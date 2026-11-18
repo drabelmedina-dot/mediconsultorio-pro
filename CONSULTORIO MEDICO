@@ -1,0 +1,2411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MediConsultorio Pro 360 — Suite Clínica Integral</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'] },
+          colors: {
+            clinical: {
+              50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc',
+              500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 800: '#075985', 900: '#0c4a6e'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; background-color: #f1f5f9; color: #0f172a; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    /* ===================================================================== */
+    /* ESTILOS DE IMPRESIÓN LIMPIA E INDEPENDIENTE (@media print)            */
+    /* ===================================================================== */
+    @media print {
+      body { background: #ffffff !important; margin: 0 !important; padding: 0 !important; color: #000000 !important; }
+      #app-shell, #pin-lock-screen, .no-print { display: none !important; }
+      #print-container { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+      .print-sheet { display: none !important; }
+
+      body.print-hc #sheet-hc { display: block !important; }
+      body.print-rx #sheet-rx { display: block !important; }
+      body.print-lab #sheet-lab { display: block !important; }
+      body.print-img #sheet-img { display: block !important; }
+      body.print-cert #sheet-cert { display: block !important; }
+      body.print-ref #sheet-ref { display: block !important; }
+      body.print-consent #sheet-consent { display: block !important; }
+      body.print-eco #sheet-eco { display: block !important; }
+      body.print-exp #sheet-exp { display: block !important; }
+
+      @page { margin: 11mm; }
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-clinical-100 selection:text-clinical-900">
+
+  <!-- ===================================================================== -->
+  <!-- PANTALLA DE BLOQUEO POR PIN DE PRIVACIDAD                             -->
+  <!-- ===================================================================== -->
+  <div id="pin-lock-screen" class="hidden fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 text-center space-y-5">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-clinical-600 text-white flex items-center justify-center shadow-md">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+      </div>
+      <div>
+        <h2 class="text-lg font-extrabold text-slate-900">Consultorio Bloqueado</h2>
+        <p class="text-xs text-slate-500 mt-1" id="lock-doc-label">Ingrese su PIN de 4 dígitos para acceder a las historias clínicas</p>
+      </div>
+
+      <div>
+        <input type="password" id="pin-unlock-input" maxlength="4" readonly class="w-40 mx-auto text-center text-2xl tracking-[0.6em] font-extrabold py-2.5 px-3 bg-slate-100 border border-slate-300 rounded-xl text-slate-900" placeholder="••••" />
+        <p id="pin-error-msg" class="text-xs font-bold text-rose-600 mt-1.5 h-4"></p>
+      </div>
+
+      <!-- Teclado Numérico Táctil -->
+      <div class="grid grid-cols-3 gap-2.5 max-w-[240px] mx-auto">
+        <button type="button" onclick="pressPinKey('1')" class="py-3 rounded-xl bg-slate-100 hover:bg-slate-200 font-extrabold text-base text-slate-800 cursor-pointer">1</button>
+        <button type="button" onclick="pressPinKey('2')" class="py-3 rounded-xl bg-slate-100 hover:bg-slate-200 font-extrabold text-base text-slate-800 cursor-pointer">2</button>
+        <button type="button" onclick="pressPinKey('3')" class="py-3 rounded-xl bg-slate-100 hover:bg-slate-200 font-extrabold text-base text-slate-800 cursor-pointer">3</button>
+        <button type="button" onclick="pressPinKey('4')" class="py-3 rounded-xl bg-slate-100 hover:bg-slate-200 font-extrabold text-base text-slate-800 cursor-pointer">4</button>
+        <button type="button" onclick="pressPinKey('5')" class="py-3 rounded-xl bg-slate-100 hover:bg-slate-200 font-extrabold text-base text-slate-800 cursor-pointer">5</button>
+        <button type="button" onclick="pressPinKey('6')" class="py-3 rounded-xl bg-slate-100 hover:bg-slate-200 font-extrabold text-base text-slate-800 cursor-pointer">6</button>
+        <button type="button" onclick="pressPinKey('7')" class="py-3 rounded-xl bg-slate-100 hover:bg-slate-200 font-extrabold text-base text-slate-800 cursor-pointer">7</button>
+        <button type="button" onclick="pressPinKey('8')" class="py-3 rounded-xl bg-slate-100 hover:bg-slate-200 font-extrabold text-base text-slate-800 cursor-pointer">8</button>
+        <button type="button" onclick="pressPinKey('9')" class="py-3 rounded-xl bg-slate-100 hover:bg-slate-200 font-extrabold text-base text-slate-800 cursor-pointer">9</button>
+        <button type="button" onclick="clearPinInput()" class="py-3 rounded-xl bg-rose-50 hover:bg-rose-100 font-bold text-xs text-rose-700 cursor-pointer">Borrar</button>
+        <button type="button" onclick="pressPinKey('0')" class="py-3 rounded-xl bg-slate-100 hover:bg-slate-200 font-extrabold text-base text-slate-800 cursor-pointer">0</button>
+        <button type="button" onclick="verifyPinUnlock()" class="py-3 rounded-xl bg-clinical-600 hover:bg-clinical-700 font-bold text-xs text-white cursor-pointer">Entrar</button>
+      </div>
+      <p class="text-[11px] text-slate-400">PIN predeterminado: <strong>1234</strong> (Configurable en Firma y Respaldos)</p>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- INTERFAZ PRINCIPAL DE LA APLICACIÓN                                   -->
+  <!-- ===================================================================== -->
+  <div id="app-shell" class="min-h-screen flex flex-col">
+
+    <!-- 1. BARRA SUPERIOR -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+      <div class="max-w-[1680px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+        <!-- Identidad del Consultorio -->
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-10 h-10 rounded-xl bg-clinical-600 text-white flex items-center justify-center shrink-0 shadow-sm font-extrabold text-sm">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <h1 class="text-sm sm:text-base font-extrabold text-slate-900 truncate" id="hdr-clinic-name">MediConsultorio Pro 360</h1>
+              <span class="hidden md:inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-clinical-50 text-clinical-700 border border-clinical-200" id="hdr-doc-name">Dr. Alejandro Mendoza</span>
+            </div>
+            <p class="text-xs text-slate-500 truncate" id="hdr-doc-sub">Medicina General • Mat. Prof. MP-45892 • Consultorio Privado</p>
+          </div>
+        </div>
+
+        <!-- Acciones Globales -->
+        <div class="flex items-center gap-2 shrink-0">
+          <button type="button" onclick="startNewConsultation()" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition cursor-pointer">
+            <svg class="w-4 h-4 text-clinical-600" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            <span class="hidden sm:inline">Nueva Consulta</span>
+          </button>
+
+          <button type="button" onclick="lockScreen()" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 rounded-xl hover:bg-amber-100 transition cursor-pointer" title="Bloquear pantalla con PIN">
+            <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            <span class="hidden md:inline">Bloquear PIN</span>
+          </button>
+
+          <button type="button" onclick="saveFullConsultation()" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-extrabold text-white bg-clinical-600 rounded-xl hover:bg-clinical-700 shadow-xs transition cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            <span>Guardar Consulta</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. BARRA DE NAVEGACIÓN DE LAS 7 PESTAÑAS PRINCIPALES -->
+      <nav class="bg-slate-50 border-t border-slate-200">
+        <div class="max-w-[1680px] mx-auto px-4 sm:px-6 flex items-center gap-1.5 overflow-x-auto py-2">
+          <button type="button" data-mview="consulta" onclick="switchMainView('consulta')" class="mview-btn px-3.5 py-2 rounded-xl text-xs font-extrabold bg-clinical-600 text-white shadow-xs whitespace-nowrap cursor-pointer">
+            1. Consulta e Historia Clínica
+          </button>
+          <button type="button" data-mview="recepcion" onclick="switchMainView('recepcion')" class="mview-btn px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-white hover:text-slate-900 whitespace-nowrap cursor-pointer">
+            2. Recepción / Triaje (<span id="badge-waitlist" class="text-clinical-700 font-extrabold">0</span>)
+          </button>
+          <button type="button" data-mview="ecografia" onclick="switchMainView('ecografia')" class="mview-btn px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-white hover:text-slate-900 whitespace-nowrap cursor-pointer">
+            3. Ecografía y Procedimientos
+          </button>
+          <button type="button" data-mview="polivalente" onclick="switchMainView('polivalente')" class="mview-btn px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-white hover:text-slate-900 whitespace-nowrap cursor-pointer">
+            4. Odontograma, Oftalmo/ORL y Vacunas PAI
+          </button>
+          <button type="button" data-mview="historial" onclick="switchMainView('historial')" class="mview-btn px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-white hover:text-slate-900 whitespace-nowrap cursor-pointer">
+            5. Historial Longitudinal y Estadísticas SNIS (<span id="badge-records">0</span>)
+          </button>
+          <button type="button" data-mview="caja" onclick="switchMainView('caja')" class="mview-btn px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-white hover:text-slate-900 whitespace-nowrap cursor-pointer">
+            6. Botiquín / Insumos (<span id="badge-low-stock" class="text-rose-600 font-extrabold">0</span>) y Caja Diaria
+          </button>
+          <button type="button" data-mview="firma" onclick="switchMainView('firma')" class="mview-btn px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-white hover:text-slate-900 whitespace-nowrap cursor-pointer">
+            7. Firma Digital, Sello y Respaldos
+          </button>
+        </div>
+      </nav>
+
+      <!-- 3. BARRA DE CONTEXTO DEL PACIENTE ACTIVO -->
+      <div class="bg-slate-900 text-white">
+        <div class="max-w-[1680px] mx-auto px-4 sm:px-6 py-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div class="flex flex-wrap items-center gap-3">
+            <span id="bar-consult-type" class="px-2 py-0.5 rounded bg-clinical-500/20 text-clinical-300 font-bold uppercase text-[10px] border border-clinical-500/30">Primera Consulta</span>
+            <span id="bar-pt-name" class="font-bold text-sm text-white">Nuevo Paciente</span>
+            <span class="text-slate-600">|</span>
+            <span class="text-slate-300">CI: <strong id="bar-pt-ci" class="text-white">--</strong></span>
+            <span class="text-slate-300">Edad: <strong id="bar-pt-age" class="text-white">--</strong></span>
+            <span class="text-slate-300">Sexo: <strong id="bar-pt-sex" class="text-white">Femenino</strong></span>
+            <span id="bar-allergy-badge" class="hidden px-2.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold text-[11px]">
+              ⚠ ALERGIA: <span id="bar-allergy-text"></span>
+            </span>
+            <span id="bar-violence-badge" class="hidden px-2.5 py-0.5 rounded-md bg-rose-600 text-white font-bold text-[11px]">
+              ⚖ CASO VIOLENCIA
+            </span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <label for="specialty-selector" class="text-slate-400">Especialidad:</label>
+            <select id="specialty-selector" onchange="onSpecialtyChange()" class="bg-slate-800 text-white border border-slate-600 rounded-lg px-2.5 py-1 text-xs font-bold cursor-pointer">
+              <option value="general">Medicina General</option>
+              <option value="gineco">Ginecología y Obstetricia (+ Gestograma)</option>
+              <option value="pediatria">Pediatría (+ Dosis mg/kg/día)</option>
+              <option value="trauma">Traumatología y Ortopedia</option>
+              <option value="cirugia">Cirugía General (+ Escala Alvarado)</option>
+              <option value="cardio">Cardiología</option>
+              <option value="dermato">Dermatología</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- TOAST NOTIFICATIONS -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- =================================================================== -->
+    <!-- CONTENEDOR PRINCIPAL DE LAS 7 VISTAS                                -->
+    <!-- =================================================================== -->
+    <main class="flex-1 max-w-[1680px] w-full mx-auto px-4 sm:px-6 py-5">
+
+      <!-- ================================================================= -->
+      <!-- PESTAÑA 1: CONSULTA E HISTORIA CLÍNICA (PANTALLA DIVIDIDA)        -->
+      <!-- ================================================================= -->
+      <div id="view-consulta" class="main-view space-y-4">
+
+        <!-- Buscador Inteligente de Paciente Previo -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div class="flex-1 relative">
+            <input type="text" id="smart-patient-search" oninput="handleSmartSearch()" onfocus="handleSmartSearch()" placeholder="Buscar paciente previo por Nombre o CI para cargar historial longitudinal o registrar evolución SOAP..." class="w-full pl-9 pr-4 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none focus:border-clinical-600" />
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <div id="smart-search-results" class="hidden absolute left-0 right-0 mt-1 bg-white border border-slate-300 rounded-xl shadow-xl z-20 max-h-60 overflow-y-auto divide-y divide-slate-100"></div>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200">
+              <button type="button" id="btn-mode-first" onclick="setConsultMode('Primera Consulta')" class="px-3 py-1 text-xs font-bold rounded-lg bg-white text-clinical-700 shadow-xs cursor-pointer">Primera Consulta</button>
+              <button type="button" id="btn-mode-soap" onclick="setConsultMode('Nota de Evolución (SOAP)')" class="px-3 py-1 text-xs font-semibold rounded-lg text-slate-600 cursor-pointer">Evolución SOAP</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SPLIT-VIEW: IZQUIERDA (7 COLS) | DERECHA (5 COLS) -->
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
+
+          <!-- COLUMNA IZQUIERDA: HISTORIA CLÍNICA, ESPECIALIDAD Y MAPA CORPORAL -->
+          <div class="xl:col-span-7 space-y-5">
+
+            <!-- 1. FILIACIÓN, ALERGIAS, ACOMPAÑANTE Y VIOLENCIA -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
+              <div class="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+                <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-800">1. Filiación, Alergias, Acompañante y Constancia Legal</h2>
+                <div class="flex items-center gap-2 text-xs">
+                  <input type="date" id="consult-date" class="border border-slate-300 rounded-lg px-2 py-1 font-semibold" onchange="syncAllViews()" />
+                  <input type="time" id="consult-time" class="border border-slate-300 rounded-lg px-2 py-1 font-semibold" onchange="syncAllViews()" />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                <div class="sm:col-span-5">
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Nombre Completo *</label>
+                  <input type="text" id="pt-name" placeholder="Ej. María Elena Quispe Mamani" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl" oninput="syncAllViews()" />
+                </div>
+                <div class="sm:col-span-3">
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Cédula Identidad (CI) *</label>
+                  <input type="text" id="pt-ci" placeholder="Ej. 6849201 LP" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl" oninput="syncAllViews()" />
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Edad (Años)</label>
+                  <input type="number" min="0" id="pt-age-years" placeholder="32" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl" oninput="syncAllViews()" />
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Meses</label>
+                  <input type="number" min="0" max="11" id="pt-age-months" placeholder="0" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl" oninput="syncAllViews()" />
+                </div>
+
+                <div class="sm:col-span-3">
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Sexo</label>
+                  <select id="pt-sex" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl bg-white" onchange="syncAllViews()">
+                    <option value="Femenino">Femenino</option>
+                    <option value="Masculino">Masculino</option>
+                  </select>
+                </div>
+                <div class="sm:col-span-3">
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Teléfono / WhatsApp</label>
+                  <input type="text" id="pt-phone" placeholder="71548920" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl" oninput="syncAllViews()" />
+                </div>
+                <div class="sm:col-span-6">
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Procedencia / Dirección</label>
+                  <input type="text" id="pt-address" placeholder="Ej. Ciudad Satélite, El Alto" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl" />
+                </div>
+
+                <div class="sm:col-span-6">
+                  <label class="block text-xs font-extrabold text-rose-700 mb-1">Alergias Medicamentosas (Alerta Cruzada Automática)</label>
+                  <input type="text" id="pt-allergies" placeholder="Ej. Penicilina, Amoxicilina, Ibuprofeno, Dipirona..." class="w-full px-3 py-2 text-sm border-2 border-rose-200 bg-rose-50/40 rounded-xl text-rose-900 font-bold" oninput="syncAllViews(); checkDrugAllergyLive();" />
+                </div>
+                <div class="sm:col-span-6">
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Antecedentes Patológicos / Quirúrgicos / Familiares</label>
+                  <input type="text" id="pt-antecedents" placeholder="Ej. HTA crónica, DM2, Cesárea previa..." class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl" />
+                </div>
+              </div>
+
+              <!-- Acompañante -->
+              <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
+                <label class="inline-flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="companion-check" onchange="toggleCompanionBox()" class="w-4 h-4 text-clinical-600 rounded" />
+                  <span class="text-xs font-bold text-slate-800">¿Paciente viene acompañado/a? (Madre, Padre, Tutor, Pareja, SLIM, Defensoría)</span>
+                </label>
+                <div id="companion-fields" class="hidden grid-cols-1 sm:grid-cols-12 gap-2.5 pt-1">
+                  <div class="sm:col-span-4">
+                    <select id="comp-relation" class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg font-semibold">
+                      <option value="Madre">Madre</option>
+                      <option value="Padre">Padre</option>
+                      <option value="Tutor Legal">Tutor Legal</option>
+                      <option value="Pareja">Pareja</option>
+                      <option value="SLIM / Defensoría">SLIM / Defensoría</option>
+                      <option value="Otro Familiar">Otro Familiar</option>
+                    </select>
+                  </div>
+                  <div class="sm:col-span-4"><input type="text" id="comp-name" placeholder="Nombre del acompañante" class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg" /></div>
+                  <div class="sm:col-span-2"><input type="text" id="comp-ci" placeholder="CI" class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg" /></div>
+                  <div class="sm:col-span-2"><input type="text" id="comp-phone" placeholder="Teléfono" class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg" /></div>
+                </div>
+              </div>
+
+              <!-- Constancia Médico-Legal por Violencia -->
+              <div>
+                <label class="inline-flex items-center gap-2 cursor-pointer px-3.5 py-2 rounded-xl border border-rose-200 bg-rose-50/70">
+                  <input type="checkbox" id="violence-check" onchange="toggleViolenceBox()" class="w-4 h-4 text-rose-600 rounded" />
+                  <span class="text-xs font-extrabold text-rose-800">¿Paciente acude por situación de violencia? (Activar Constancia Médico-Legal)</span>
+                </label>
+                <div id="violence-fields" class="hidden mt-2.5 p-3.5 rounded-xl bg-rose-50 border border-rose-200 space-y-2.5 text-xs">
+                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <label class="flex items-center gap-1.5 bg-white p-1.5 rounded border border-rose-200"><input type="checkbox" value="Física" class="viol-type-chk"> Física</label>
+                    <label class="flex items-center gap-1.5 bg-white p-1.5 rounded border border-rose-200"><input type="checkbox" value="Psicológica" class="viol-type-chk"> Psicológica</label>
+                    <label class="flex items-center gap-1.5 bg-white p-1.5 rounded border border-rose-200"><input type="checkbox" value="Sexual" class="viol-type-chk"> Sexual</label>
+                    <label class="flex items-center gap-1.5 bg-white p-1.5 rounded border border-rose-200"><input type="checkbox" value="Intrafamiliar" class="viol-type-chk"> Intrafamiliar</label>
+                    <label class="flex items-center gap-1.5 bg-white p-1.5 rounded border border-rose-200"><input type="checkbox" value="Obstétrica" class="viol-type-chk"> Obstétrica</label>
+                    <label class="flex items-center gap-1.5 bg-white p-1.5 rounded border border-rose-200"><input type="checkbox" value="Negligencia" class="viol-type-chk"> Negligencia</label>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <input type="text" id="viol-aggressor" placeholder="Vínculo con presunto agresor" class="px-3 py-1.5 bg-white border border-rose-300 rounded-lg" />
+                    <select id="viol-referral" class="px-3 py-1.5 bg-white border border-rose-300 rounded-lg font-semibold">
+                      <option value="Orientación y entrega de certificado médico">Orientación y certificado médico</option>
+                      <option value="Notificación a SLIM">Notificación a SLIM</option>
+                      <option value="Notificación a Defensoría de la Niñez (DNA)">Notificación a Defensoría (DNA)</option>
+                      <option value="Notificación a FELCV / Policía">Notificación a FELCV / Policía</option>
+                      <option value="Referencia Hospital + Médico Forense">Referencia Hospital + Forense</option>
+                    </select>
+                    <textarea id="viol-desc" rows="2" placeholder="Descripción detallada de lesiones (también puede marcarlas abajo en el Mapa Corporal)..." class="sm:col-span-2 px-3 py-1.5 bg-white border border-rose-300 rounded-lg"></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. SIGNOS VITALES E IMC -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-3 pb-2 border-b border-slate-100">
+                <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-800">2. Signos Vitales y Antropometría</h2>
+                <span id="imc-badge" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600">IMC: -- kg/m²</span>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+                <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">PAS</label><input type="number" id="vs-pas" placeholder="120" class="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded-xl" /></div>
+                <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">PAD</label><input type="number" id="vs-pad" placeholder="80" class="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded-xl" /></div>
+                <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">FC (lpm)</label><input type="number" id="vs-hr" placeholder="76" class="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded-xl" /></div>
+                <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">FR (rpm)</label><input type="number" id="vs-rr" placeholder="18" class="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded-xl" /></div>
+                <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Temp (°C)</label><input type="number" step="0.1" id="vs-temp" placeholder="36.6" class="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded-xl" /></div>
+                <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">SatO₂ (%)</label><input type="number" id="vs-spo2" placeholder="96" class="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded-xl" /></div>
+                <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Peso (kg)</label><input type="number" step="0.1" id="vs-weight" placeholder="68.5" class="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded-xl" oninput="calculateIMC(); calcPediatricDose();" /></div>
+                <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Talla (cm)</label><input type="number" step="0.5" id="vs-height" placeholder="165" class="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded-xl" oninput="calculateIMC()" /></div>
+              </div>
+            </div>
+
+            <!-- 3. ANAMNESIS, ESPECIALIDAD Y MAPA CORPORAL INTERACTIVO -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
+              <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-100">
+                <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-800">3. Evaluación Clínica, Especialidad y Mapa Corporal</h2>
+                <span id="active-spec-pill" class="px-2.5 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-bold">Medicina General</span>
+              </div>
+
+              <div class="space-y-3">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1" id="lbl-reason">Motivo de Consulta *</label>
+                  <input type="text" id="hc-reason" placeholder="Ej. Control prenatal / Dolor abdominal / Trauma en tobillo..." class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1" id="lbl-exam">Enfermedad Actual y Examen Físico</label>
+                  <textarea id="hc-exam" rows="3" placeholder="Relato cronológico y hallazgos al examen físico..." class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl"></textarea>
+                </div>
+                <div id="soap-extra-fields" class="hidden grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-bold text-indigo-800 mb-1">A — Análisis / Evolución</label>
+                    <textarea id="hc-soap-analysis" rows="2" class="w-full px-3 py-2 text-sm bg-indigo-50/30 border border-indigo-200 rounded-xl"></textarea>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-indigo-800 mb-1">P — Plan de Seguimiento</label>
+                    <textarea id="hc-soap-plan" rows="2" class="w-full px-3 py-2 text-sm bg-indigo-50/30 border border-indigo-200 rounded-xl"></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <!-- PANEL DINÁMICO GINECOLOGÍA + GESTOGRAMA -->
+              <div id="spec-panel-gineco" class="spec-panel hidden p-4 rounded-2xl bg-pink-50/60 border border-pink-200 space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <h3 class="text-xs font-extrabold uppercase text-pink-900">Ficha Gineco-Obstétrica</h3>
+                  <label class="inline-flex items-center gap-2 cursor-pointer bg-white px-3 py-1 rounded-lg border border-pink-300">
+                    <input type="checkbox" id="gine-pregnant" onchange="toggleGestograma()" class="w-4 h-4 text-pink-600 rounded" />
+                    <span class="text-xs font-extrabold text-pink-800">Embarazo Activo (Gestograma)</span>
+                  </label>
+                </div>
+                <div class="grid grid-cols-4 gap-2">
+                  <div><label class="block text-[10px] font-bold">Gestas</label><input type="number" id="gine-g" class="w-full px-2 py-1 text-xs bg-white border border-pink-200 rounded"></div>
+                  <div><label class="block text-[10px] font-bold">Partos</label><input type="number" id="gine-p" class="w-full px-2 py-1 text-xs bg-white border border-pink-200 rounded"></div>
+                  <div><label class="block text-[10px] font-bold">Abortos</label><input type="number" id="gine-a" class="w-full px-2 py-1 text-xs bg-white border border-pink-200 rounded"></div>
+                  <div><label class="block text-[10px] font-bold">Cesáreas</label><input type="number" id="gine-c" class="w-full px-2 py-1 text-xs bg-white border border-pink-200 rounded"></div>
+                </div>
+                <div id="gestograma-box" class="hidden bg-white p-3.5 rounded-xl border border-pink-300 space-y-2.5">
+                  <div class="flex justify-between items-center">
+                    <span class="text-xs font-extrabold text-pink-800">Gestograma Interactivo (Regla de Naegele)</span>
+                    <span id="gesto-trimestre-badge" class="px-2 py-0.5 rounded-full bg-pink-100 text-pink-900 text-[11px] font-bold">Ingrese FUM</span>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <div><label class="block text-[11px] font-bold">FUM</label><input type="date" id="gine-fum" onchange="calculateGestograma('fum')" class="w-full px-2.5 py-1.5 text-xs border border-pink-300 rounded-lg font-bold" /></div>
+                    <div><label class="block text-[11px] font-bold">FPP</label><input type="date" id="gine-fpp" onchange="calculateGestograma('fpp')" class="w-full px-2.5 py-1.5 text-xs border border-pink-300 rounded-lg font-bold text-pink-800" /></div>
+                    <div><label class="block text-[11px] font-bold">Edad Gestacional</label><input type="text" id="gine-eg" readonly class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg font-extrabold text-pink-700" /></div>
+                  </div>
+                  <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden"><div id="gesto-bar" class="h-full bg-pink-600 transition-all" style="width: 0%"></div></div>
+                  <div id="gesto-hitos-box" class="p-2.5 rounded-lg bg-pink-50 text-xs text-pink-950">Ingrese la FUM para ver recomendaciones obstétricas.</div>
+                </div>
+              </div>
+
+              <!-- PANEL DINÁMICO PEDIATRÍA -->
+              <div id="spec-panel-pediatria" class="spec-panel hidden p-4 rounded-2xl bg-sky-50/70 border border-sky-200 space-y-2.5">
+                <h3 class="text-xs font-extrabold uppercase text-sky-900">Calculadora Pediátrica de Dosis (mg/kg/día → ml/toma)</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 items-end">
+                  <div><label class="block text-[10px] font-bold">mg/kg/día</label><input type="number" id="ped-mgkg" placeholder="50" oninput="calcPediatricDose()" class="w-full px-2 py-1.5 text-xs bg-white border border-sky-200 rounded-lg"></div>
+                  <div><label class="block text-[10px] font-bold">Tomas/día</label><select id="ped-freq" onchange="calcPediatricDose()" class="w-full px-2 py-1.5 text-xs bg-white border border-sky-200 rounded-lg"><option value="3">Cada 8h (3)</option><option value="2">Cada 12h (2)</option><option value="4">Cada 6h (4)</option></select></div>
+                  <div><label class="block text-[10px] font-bold">Jarabe (mg)</label><input type="number" id="ped-cmg" placeholder="250" oninput="calcPediatricDose()" class="w-full px-2 py-1.5 text-xs bg-white border border-sky-200 rounded-lg"></div>
+                  <div><label class="block text-[10px] font-bold">En ml</label><input type="number" id="ped-cml" value="5" oninput="calcPediatricDose()" class="w-full px-2 py-1.5 text-xs bg-white border border-sky-200 rounded-lg"></div>
+                  <div class="bg-white p-1.5 rounded-lg border border-sky-300 text-center"><span class="block text-[9px] font-bold text-sky-700">DOSIS/TOMA</span><strong id="ped-dose-out" class="text-xs text-sky-950">--</strong></div>
+                </div>
+              </div>
+
+              <!-- PANEL DINÁMICO CIRUGÍA (ALVARADO) -->
+              <div id="spec-panel-cirugia" class="spec-panel hidden p-4 rounded-2xl bg-teal-50/70 border border-teal-200 space-y-2">
+                <div class="flex justify-between items-center"><h3 class="text-xs font-extrabold uppercase text-teal-900">Escala de Alvarado</h3><span id="alvarado-badge" class="px-2 py-0.5 bg-teal-100 text-teal-900 rounded font-bold text-xs">0 / 10 pts</span></div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs bg-white p-2 rounded-xl border border-teal-200">
+                  <label class="flex items-center gap-1"><input type="checkbox" class="alv-chk" data-pts="1" onchange="calcAlvarado()"> Migración dolor (1)</label>
+                  <label class="flex items-center gap-1"><input type="checkbox" class="alv-chk" data-pts="1" onchange="calcAlvarado()"> Anorexia (1)</label>
+                  <label class="flex items-center gap-1"><input type="checkbox" class="alv-chk" data-pts="1" onchange="calcAlvarado()"> Náuseas/Vóm. (1)</label>
+                  <label class="flex items-center gap-1"><input type="checkbox" class="alv-chk" data-pts="2" onchange="calcAlvarado()"> Dolor FID (2)</label>
+                  <label class="flex items-center gap-1"><input type="checkbox" class="alv-chk" data-pts="1" onchange="calcAlvarado()"> Rebote + (1)</label>
+                  <label class="flex items-center gap-1"><input type="checkbox" class="alv-chk" data-pts="1" onchange="calcAlvarado()"> Fiebre (1)</label>
+                  <label class="flex items-center gap-1"><input type="checkbox" class="alv-chk" data-pts="2" onchange="calcAlvarado()"> Leucocitosis (2)</label>
+                  <label class="flex items-center gap-1"><input type="checkbox" class="alv-chk" data-pts="1" onchange="calcAlvarado()"> Desv. Izq (1)</label>
+                </div>
+              </div>
+
+              <!-- MAPA CORPORAL INTERACTIVO (ESQUEMA TOPOGRÁFICO FRONTAL Y POSTERIOR) -->
+              <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
+                  <div>
+                    <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-800">Mapa Corporal Interactivo (Dolor, Lesiones Médico-Legales, Heridas)</h3>
+                    <p class="text-[11px] text-slate-500">Seleccione el tipo de hallazgo y haga clic sobre la silueta anatómica (Vista Frontal o Posterior).</p>
+                  </div>
+                  <button type="button" onclick="clearBodyMarkers()" class="px-2.5 py-1 text-[11px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg cursor-pointer">Limpiar Marcas</button>
+                </div>
+
+                <!-- Selector de Tipo de Marcador -->
+                <div class="flex flex-wrap items-center gap-2 text-xs">
+                  <span class="font-bold text-slate-600">Marcador:</span>
+                  <button type="button" data-mtype="Dolor" data-mcolor="#ef4444" onclick="selectBodyMarkerType(this)" class="bmarker-btn px-2.5 py-1 rounded-lg font-bold bg-red-600 text-white cursor-pointer">● Dolor</button>
+                  <button type="button" data-mtype="Equimosis / Hematoma" data-mcolor="#7c3aed" onclick="selectBodyMarkerType(this)" class="bmarker-btn px-2.5 py-1 rounded-lg font-semibold bg-white border border-slate-300 text-slate-700 cursor-pointer">● Equimosis / Violencia</button>
+                  <button type="button" data-mtype="Herida / Laceración" data-mcolor="#ea580c" onclick="selectBodyMarkerType(this)" class="bmarker-btn px-2.5 py-1 rounded-lg font-semibold bg-white border border-slate-300 text-slate-700 cursor-pointer">● Herida / Trauma</button>
+                  <button type="button" data-mtype="Sitio Quirúrgico" data-mcolor="#0284c7" onclick="selectBodyMarkerType(this)" class="bmarker-btn px-2.5 py-1 rounded-lg font-semibold bg-white border border-slate-300 text-slate-700 cursor-pointer">● Sitio Quirúrgico</button>
+                  <button type="button" data-mtype="Hallazgo Dermatológico" data-mcolor="#059669" onclick="selectBodyMarkerType(this)" class="bmarker-btn px-2.5 py-1 rounded-lg font-semibold bg-white border border-slate-300 text-slate-700 cursor-pointer">● Dermatológico</button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+                  <!-- Lienzo SVG Anatómico Interactivo -->
+                  <div class="md:col-span-6 bg-white border border-slate-300 rounded-xl p-2 flex flex-col items-center">
+                    <svg id="body-map-svg" viewBox="0 0 320 260" onclick="handleBodyMapClick(event)" class="w-full max-w-[310px] h-auto cursor-crosshair select-none">
+                      <!-- Etiquetas -->
+                      <text x="80" y="14" font-size="10" font-weight="bold" fill="#475569" text-anchor="middle">VISTA ANTERIOR</text>
+                      <text x="240" y="14" font-size="10" font-weight="bold" fill="#475569" text-anchor="middle">VISTA POSTERIOR</text>
+                      <line x1="160" y1="10" x2="160" y2="250" stroke="#e2e8f0" stroke-dasharray="3"/>
+
+                      <!-- SILUETA ANTERIOR (X=80) -->
+                      <g fill="#f8fafc" stroke="#64748b" stroke-width="1.6">
+                        <circle cx="80" cy="36" r="14" />
+                        <rect x="74" y="50" width="12" height="8" rx="3" />
+                        <path d="M56 58 L104 58 L100 132 L60 132 Z" rx="6" />
+                        <path d="M56 60 L38 115 L45 118 L60 72" />
+                        <path d="M104 60 L122 115 L115 118 L100 72" />
+                        <path d="M62 132 L58 238 L72 238 L78 155 L82 155 L88 238 L102 238 L98 132 Z" />
+                      </g>
+                      <!-- Líneas anatómicas referencia anterior -->
+                      <line x1="62" y1="92" x2="98" y2="92" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="2"/>
+                      <circle cx="80" cy="112" r="1.5" fill="#94a3b8"/>
+
+                      <!-- SILUETA POSTERIOR (X=240) -->
+                      <g fill="#f8fafc" stroke="#64748b" stroke-width="1.6">
+                        <circle cx="240" cy="36" r="14" />
+                        <rect x="234" y="50" width="12" height="8" rx="3" />
+                        <path d="M216 58 L264 58 L260 132 L220 132 Z" rx="6" />
+                        <path d="M216 60 L198 115 L205 118 L220 72" />
+                        <path d="M264 60 L282 115 L275 118 L260 72" />
+                        <path d="M222 132 L218 238 L232 238 L238 155 L242 155 L248 238 L262 238 L258 132 Z" />
+                      </g>
+                      <!-- Columna vertebral referencia posterior -->
+                      <line x1="240" y1="58" x2="240" y2="130" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="2"/>
+
+                      <!-- Grupo donde se dibujan los marcadores dinámicos -->
+                      <g id="body-markers-layer"></g>
+                    </svg>
+                  </div>
+
+                  <!-- Lista Lateral Editable de Hallazgos Topográficos -->
+                  <div class="md:col-span-6 space-y-2 max-h-[250px] overflow-y-auto pr-1" id="body-markers-list">
+                    <p class="text-xs text-slate-400 italic py-6 text-center bg-white rounded-xl border border-dashed border-slate-200">Haga clic en el esquema corporal para registrar puntos anatómicos.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- DIAGNÓSTICO CIE-10 -->
+              <div class="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-12 gap-3">
+                <div class="sm:col-span-5">
+                  <label class="block text-xs font-bold text-slate-700 mb-1">CIE-10 Frecuentes</label>
+                  <select id="cie10-quick-select" onchange="applyQuickCIE10()" class="w-full px-2.5 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl">
+                    <option value="">-- Seleccionar diagnóstico --</option>
+                    <option value="J00|Rinofaringitis aguda (Resfriado común)">J00 — Rinofaringitis aguda</option>
+                    <option value="J03.9|Amigdalitis aguda">J03.9 — Amigdalitis aguda</option>
+                    <option value="A09|Gastroenteritis aguda">A09 — Gastroenteritis aguda</option>
+                    <option value="K29.7|Gastritis aguda / crónica">K29.7 — Gastritis</option>
+                    <option value="N39.0|Infección de vías urinarias (ITU)">N39.0 — Infección de vías urinarias</option>
+                    <option value="I10|Hipertensión arterial esencial">I10 — Hipertensión arterial</option>
+                    <option value="E11.9|Diabetes mellitus tipo 2">E11.9 — Diabetes mellitus tipo 2</option>
+                    <option value="Z34.9|Control de embarazo normal">Z34.9 — Control prenatal normal</option>
+                    <option value="M54.5|Lumbalgia aguda">M54.5 — Lumbalgia</option>
+                    <option value="T74.1|Violencia física / Maltrato">T74.1 — Violencia física</option>
+                    <option value="K02.9|Caries dental">K02.9 — Caries dental</option>
+                  </select>
+                </div>
+                <div class="sm:col-span-5">
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Diagnóstico Principal *</label>
+                  <input type="text" id="hc-diagnosis" placeholder="Diagnóstico clínico..." class="w-full px-3 py-2 text-sm font-bold border border-slate-300 rounded-xl" oninput="syncAllViews()" />
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="block text-xs font-bold text-slate-700 mb-1">CIE-10</label>
+                  <input type="text" id="hc-cie10" placeholder="J00" class="w-full px-3 py-2 text-sm uppercase font-bold border border-slate-300 rounded-xl" oninput="syncAllViews()" />
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. HONORARIOS (CAJA BS.), WHATSAPP E IMPRESIÓN HISTORIA -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-3">
+              <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-800 border-b border-slate-100 pb-2">4. Honorarios (Caja Bs.), Próximo Control y Acciones</h2>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div><label class="block text-xs font-bold text-slate-700 mb-1">Monto (Bs.)</label><input type="number" id="pay-amount" value="100" class="w-full px-3 py-2 text-sm font-extrabold text-emerald-800 bg-emerald-50/40 border border-emerald-300 rounded-xl" /></div>
+                <div><label class="block text-xs font-bold text-slate-700 mb-1">Concepto</label><select id="pay-concept" class="w-full px-2 py-2 text-xs border border-slate-300 rounded-xl bg-white"><option value="Consulta Médica">Consulta Médica</option><option value="Control / Reconsulta">Control</option><option value="Consulta + Ecografía">Consulta + Ecografía</option><option value="Procedimiento / Curación">Procedimiento</option></select></div>
+                <div><label class="block text-xs font-bold text-slate-700 mb-1">Método Pago</label><select id="pay-method" class="w-full px-2 py-2 text-xs border border-slate-300 rounded-xl bg-white font-semibold"><option value="Efectivo">Efectivo (Bs.)</option><option value="Pago QR / Transferencia">Pago QR / Transf.</option><option value="Cortesía">Cortesía</option></select></div>
+                <div><label class="block text-xs font-bold text-slate-700 mb-1">Próximo Control</label><input type="date" id="next-control-date" class="w-full px-2 py-2 text-xs border border-slate-300 rounded-xl" /></div>
+              </div>
+              <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                <button type="button" onclick="sendWhatsAppReminder()" class="px-3.5 py-2 text-xs font-bold text-emerald-900 bg-emerald-100 hover:bg-emerald-200 rounded-xl cursor-pointer">
+                  Enviar Recordatorio / Receta por WhatsApp
+                </button>
+                <div class="flex gap-2">
+                  <button type="button" onclick="printDoc('hc')" class="px-4 py-2 text-xs font-bold text-white bg-slate-800 hover:bg-slate-900 rounded-xl cursor-pointer">
+                    Imprimir Historia Clínica (+ Mapa Corporal)
+                  </button>
+                  <button type="button" onclick="saveFullConsultation()" class="px-4 py-2 text-xs font-extrabold text-white bg-clinical-600 hover:bg-clinical-700 rounded-xl cursor-pointer">
+                    Guardar Consulta
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- COLUMNA DERECHA (5 COLS): MULTI-PESTAÑA DE DOCUMENTOS IMPRIMIBLES -->
+          <div class="xl:col-span-5 space-y-4">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-2 flex items-center gap-1 overflow-x-auto">
+              <button type="button" data-rtab="rx" onclick="switchRightTab('rx')" class="rtab-btn px-3 py-2 rounded-xl text-xs font-extrabold bg-clinical-600 text-white whitespace-nowrap cursor-pointer">Receta (<span id="r-badge-rx">0</span>)</button>
+              <button type="button" data-rtab="lab" onclick="switchRightTab('lab')" class="rtab-btn px-3 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 whitespace-nowrap cursor-pointer">Laboratorio (<span id="r-badge-lab">0</span>)</button>
+              <button type="button" data-rtab="img" onclick="switchRightTab('img')" class="rtab-btn px-3 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 whitespace-nowrap cursor-pointer">Gabinete (<span id="r-badge-img">0</span>)</button>
+              <button type="button" data-rtab="cert" onclick="switchRightTab('cert')" class="rtab-btn px-3 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 whitespace-nowrap cursor-pointer">Certificado</button>
+              <button type="button" data-rtab="ref" onclick="switchRightTab('ref')" class="rtab-btn px-3 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 whitespace-nowrap cursor-pointer">Referencia</button>
+              <button type="button" data-rtab="consent" onclick="switchRightTab('consent')" class="rtab-btn px-3 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 whitespace-nowrap cursor-pointer">Consentimiento</button>
+            </div>
+
+            <!-- SUB-PANEL A: RECETA MÉDICA EDITABLE A MANO -->
+            <div id="rpanel-rx" class="rpanel space-y-4">
+              <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-4 space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <h3 class="text-xs font-extrabold uppercase text-slate-800">Receta Médica (100% Editable a Mano)</h3>
+                  <button type="button" onclick="printDoc('rx')" class="px-3 py-1.5 text-xs font-bold text-white bg-clinical-600 hover:bg-clinical-700 rounded-lg cursor-pointer">Imprimir / PDF Receta</button>
+                </div>
+
+                <!-- Alerta de Alergia Cruzada -->
+                <div id="allergy-warning-banner" class="hidden p-3 rounded-xl bg-rose-600 text-white text-xs font-bold">
+                  ⚠ ALERTA DE ALERGIA: <span id="allergy-warning-msg" class="font-normal"></span>
+                </div>
+
+                <!-- Vademécum por grupo -->
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 bg-clinical-50 p-2 rounded-xl border border-clinical-200">
+                  <div class="sm:col-span-5">
+                    <select id="vad-group-filter" onchange="renderVademecumOptions()" class="w-full px-2 py-1.5 text-xs bg-white border border-clinical-200 rounded-lg font-semibold">
+                      <option value="ALL">Todos los grupos</option>
+                      <option value="Antibióticos">Antibióticos</option>
+                      <option value="Analgésicos / AINEs">Analgésicos / AINEs</option>
+                      <option value="Gastrointestinales">Gastrointestinales</option>
+                      <option value="Respiratorios">Respiratorios</option>
+                      <option value="Cardiovasculares">Cardiovasculares</option>
+                      <option value="Gineco-Obstétricos">Gineco-Obstétricos</option>
+                      <option value="Pediátricos">Pediátricos</option>
+                    </select>
+                  </div>
+                  <div class="sm:col-span-7">
+                    <select id="vademecum-select" onchange="fillDrugFromVademecum()" class="w-full px-2 py-1.5 text-xs bg-white border border-clinical-200 rounded-lg font-bold">
+                      <option value="">-- Cargar fármaco rápido --</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Inputs libres -->
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
+                  <div class="sm:col-span-6"><label class="block text-[10px] font-bold">Fármaco *</label><input type="text" id="rx-name" oninput="checkDrugAllergyLive()" placeholder="Amoxicilina + Ác. Clavulánico" class="w-full px-2 py-1.5 bg-white border border-slate-300 rounded-lg font-semibold" /></div>
+                  <div class="sm:col-span-3"><label class="block text-[10px] font-bold">Concentración</label><input type="text" id="rx-conc" placeholder="875/125 mg" class="w-full px-2 py-1.5 bg-white border border-slate-300 rounded-lg" /></div>
+                  <div class="sm:col-span-3"><label class="block text-[10px] font-bold">Presentación</label><input type="text" id="rx-form" placeholder="Comprimidos" class="w-full px-2 py-1.5 bg-white border border-slate-300 rounded-lg" /></div>
+                  <div class="sm:col-span-3"><label class="block text-[10px] font-bold">Cantidad</label><input type="text" id="rx-qty" placeholder="14 comp." class="w-full px-2 py-1.5 bg-white border border-slate-300 rounded-lg" /></div>
+                  <div class="sm:col-span-3"><label class="block text-[10px] font-bold">Dosis *</label><input type="text" id="rx-dose" placeholder="1 comp." class="w-full px-2 py-1.5 bg-white border border-slate-300 rounded-lg" /></div>
+                  <div class="sm:col-span-3"><label class="block text-[10px] font-bold">Vía</label><input type="text" id="rx-route" value="Vía Oral" class="w-full px-2 py-1.5 bg-white border border-slate-300 rounded-lg" /></div>
+                  <div class="sm:col-span-3"><label class="block text-[10px] font-bold">Frecuencia *</label><input type="text" id="rx-freq" placeholder="Cada 12h x 7d" class="w-full px-2 py-1.5 bg-white border border-slate-300 rounded-lg" /></div>
+                  <div class="sm:col-span-12"><label class="block text-[10px] font-bold">Manera de Administración</label><input type="text" id="rx-manner" placeholder="Tomar después de las comidas..." class="w-full px-2 py-1.5 bg-white border border-slate-300 rounded-lg" /></div>
+                  <div class="sm:col-span-12 flex justify-end pt-1">
+                    <button type="button" id="btn-rx-submit" onclick="addOrSaveRxDrug()" class="px-4 py-1.5 font-extrabold text-white bg-clinical-600 hover:bg-clinical-700 rounded-lg cursor-pointer">+ Agregar a Receta</button>
+                  </div>
+                </div>
+
+                <div id="rx-active-list" class="space-y-1.5 max-h-40 overflow-y-auto"></div>
+                <textarea id="rx-notes" rows="2" placeholder="Indicaciones generales, dieta y signos de alarma..." class="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-xl" oninput="syncAllViews()"></textarea>
+              </div>
+
+              <!-- Vista Previa en Tiempo Real -->
+              <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-4 text-xs space-y-2">
+                <div class="flex justify-between border-b-2 border-clinical-700 pb-1.5">
+                  <div><p class="font-extrabold text-clinical-900" id="prev-rx-doc">Dr. Alejandro Mendoza</p><p class="text-[11px] text-slate-500" id="prev-rx-spec">Medicina General</p></div>
+                  <span class="font-bold text-clinical-700" id="prev-rx-date">--/--/----</span>
+                </div>
+                <p class="bg-slate-50 p-1.5 rounded text-[11px]"><strong>Paciente:</strong> <span id="prev-rx-pt">Nuevo Paciente</span> • <strong>CI:</strong> <span id="prev-rx-ci">--</span></p>
+                <div id="prev-rx-body" class="space-y-1.5 min-h-[60px] text-[11px]"></div>
+              </div>
+            </div>
+
+            <!-- SUB-PANEL B: LABORATORIO -->
+            <div id="rpanel-lab" class="rpanel hidden bg-white rounded-2xl border border-slate-200 shadow-xs p-4 space-y-3">
+              <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                <h3 class="text-xs font-extrabold uppercase text-emerald-900">Orden de Laboratorio Clínico</h3>
+                <button type="button" onclick="printDoc('lab')" class="px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg cursor-pointer">Imprimir Orden Lab</button>
+              </div>
+              <div id="lab-checkboxes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[380px] overflow-y-auto text-xs"></div>
+              <input type="text" id="lab-other" oninput="updateRightBadges()" placeholder="Otros análisis..." class="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-lg" />
+              <input type="text" id="lab-ind" value="Acudir en ayunas de 8 a 12 horas." class="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-lg bg-slate-50" />
+            </div>
+
+            <!-- SUB-PANEL C: GABINETE -->
+            <div id="rpanel-img" class="rpanel hidden bg-white rounded-2xl border border-slate-200 shadow-xs p-4 space-y-3">
+              <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                <h3 class="text-xs font-extrabold uppercase text-indigo-900">Orden de Gabinete / Imagenología</h3>
+                <button type="button" onclick="printDoc('img')" class="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg cursor-pointer">Imprimir Orden Gabinete</button>
+              </div>
+              <div id="img-checkboxes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[380px] overflow-y-auto text-xs"></div>
+              <input type="text" id="img-other" oninput="updateRightBadges()" placeholder="Especificar región anatómica / otros..." class="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-lg" />
+              <input type="text" id="img-ind" placeholder="Preparación previa..." class="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-lg bg-slate-50" />
+            </div>
+
+            <!-- SUB-PANEL D: CERTIFICADO MÉDICO -->
+            <div id="rpanel-cert" class="rpanel hidden bg-white rounded-2xl border border-slate-200 shadow-xs p-4 space-y-3">
+              <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                <h3 class="text-xs font-extrabold uppercase text-slate-800">Certificado Médico</h3>
+                <button type="button" onclick="printDoc('cert')" class="px-3 py-1.5 text-xs font-bold text-white bg-clinical-600 hover:bg-clinical-700 rounded-lg cursor-pointer">Imprimir Certificado</button>
+              </div>
+              <div class="grid grid-cols-3 gap-2">
+                <select id="cert-type" onchange="generateCertText()" class="col-span-2 px-2 py-1.5 text-xs border border-slate-300 rounded-lg bg-white font-semibold">
+                  <option value="Certificado de Reposo Médico">Reposo Médico / Baja</option>
+                  <option value="Constancia de Atención Médica">Constancia de Atención</option>
+                  <option value="Certificado de Buena Salud">Certificado de Buena Salud</option>
+                  <option value="Informe Médico-Legal de Atención">Informe Médico-Legal</option>
+                </select>
+                <input type="number" id="cert-days" value="3" oninput="generateCertText()" class="px-2 py-1.5 text-xs border border-slate-300 rounded-lg font-bold" title="Días de reposo" />
+              </div>
+              <textarea id="cert-text" rows="10" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl leading-relaxed"></textarea>
+            </div>
+
+            <!-- SUB-PANEL E: HOJA DE REFERENCIA Y CONTRAREFERENCIA -->
+            <div id="rpanel-ref" class="rpanel hidden bg-white rounded-2xl border border-slate-200 shadow-xs p-4 space-y-3">
+              <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                <h3 class="text-xs font-extrabold uppercase text-amber-900">Hoja de Referencia / Derivación</h3>
+                <button type="button" onclick="printDoc('ref')" class="px-3 py-1.5 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-lg cursor-pointer">Imprimir Hoja Referencia</button>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                <div><label class="block font-bold mb-1">Hospital / Establecimiento Destino *</label><input type="text" id="ref-hospital" placeholder="Ej. Hospital del Norte / Hospital de Clínicas" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg" /></div>
+                <div><label class="block font-bold mb-1">Servicio / Especialidad Destino</label><input type="text" id="ref-service" placeholder="Ej. Emergencias / Gineco-Obstetricia / Cirugía" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg" /></div>
+                <div><label class="block font-bold mb-1">Prioridad de Traslado</label><select id="ref-priority" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white font-bold"><option value="EMERGENCIA (Riesgo Vital)">EMERGENCIA (Riesgo Vital)</option><option value="URGENCIA (Atención Pronta)">URGENCIA</option><option value="CONSULTA EXTERNA / PROGRAMADA">CONSULTA EXTERNA</option></select></div>
+                <div><label class="block font-bold mb-1">Medio de Transporte</label><input type="text" id="ref-transport" value="Ambulancia / Vehículo particular acompañado" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg" /></div>
+                <div class="sm:col-span-2"><label class="block font-bold mb-1">Resumen Clínico y Motivo de Referencia</label><textarea id="ref-summary" rows="3" placeholder="Se sincroniza automáticamente con su historia clínica al hacer clic en Actualizar..." class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg"></textarea></div>
+                <div class="sm:col-span-2"><label class="block font-bold mb-1">Tratamiento Inicial Administrado antes del Traslado</label><input type="text" id="ref-initial-tx" placeholder="Ej. Vía periférica permeable con Sol. Fisiológica 0.9%, analgesia..." class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg" /></div>
+              </div>
+              <button type="button" onclick="syncReferenceFromHistory()" class="text-[11px] font-bold text-amber-800 hover:underline cursor-pointer">↻ Sincronizar datos desde Historia Clínica actual</button>
+            </div>
+
+            <!-- SUB-PANEL F: CONSENTIMIENTO INFORMADO -->
+            <div id="rpanel-consent" class="rpanel hidden bg-white rounded-2xl border border-slate-200 shadow-xs p-4 space-y-3">
+              <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                <h3 class="text-xs font-extrabold uppercase text-slate-800">Consentimiento Informado Legal</h3>
+                <button type="button" onclick="printDoc('consent')" class="px-3 py-1.5 text-xs font-bold text-white bg-slate-800 hover:bg-slate-900 rounded-lg cursor-pointer">Imprimir Consentimiento</button>
+              </div>
+              <select id="consent-template" onchange="generateConsentText()" class="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white font-bold">
+                <option value="Sutura de Herida / Curación Profunda">Procedimiento: Sutura de Herida / Curación Profunda</option>
+                <option value="Colocación / Retiro de DIU o Implante Subdérmico">Procedimiento: Colocación / Retiro de DIU o Implante</option>
+                <option value="Infiltración Articular / Partes Blandas">Procedimiento: Infiltración Articular / Partes Blandas</option>
+                <option value="Drenaje de Absceso / Cirugía Menor">Procedimiento: Drenaje de Absceso / Cirugía Menor</option>
+                <option value="Atención Médica y Examen Físico Ginecológico">Atención Médica y Examen Físico Especializado</option>
+              </select>
+              <textarea id="consent-body" rows="10" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl leading-relaxed"></textarea>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- PESTAÑA 2: RECEPCIÓN / TRIAJE (COLA DE ESPERA)                    -->
+      <!-- ================================================================= -->
+      <div id="view-recepcion" class="main-view hidden space-y-5">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <!-- Formulario Rápido de Secretaría / Enfermería -->
+          <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-3.5">
+            <h2 class="text-sm font-extrabold uppercase tracking-wider text-clinical-800 border-b border-slate-100 pb-2">Registro en Recepción y Triaje de Enfermería</h2>
+            <div class="grid grid-cols-2 gap-3 text-xs">
+              <div class="col-span-2"><label class="block font-bold mb-1">Nombre Completo del Paciente *</label><input type="text" id="rec-name" placeholder="Nombre y apellidos" class="w-full px-3 py-2 border border-slate-300 rounded-xl" /></div>
+              <div><label class="block font-bold mb-1">CI</label><input type="text" id="rec-ci" placeholder="N° Carnet" class="w-full px-3 py-2 border border-slate-300 rounded-xl" /></div>
+              <div><label class="block font-bold mb-1">Edad (Años)</label><input type="number" id="rec-age" placeholder="30" class="w-full px-3 py-2 border border-slate-300 rounded-xl" /></div>
+              <div><label class="block font-bold mb-1">Sexo</label><select id="rec-sex" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white"><option value="Femenino">Femenino</option><option value="Masculino">Masculino</option></select></div>
+              <div><label class="block font-bold mb-1">Teléfono</label><input type="text" id="rec-phone" placeholder="71500000" class="w-full px-3 py-2 border border-slate-300 rounded-xl" /></div>
+              <div class="col-span-2"><label class="block font-bold mb-1">Motivo de Consulta / Especialidad</label><input type="text" id="rec-reason" placeholder="Ej. Dolor de garganta / Control prenatal" class="w-full px-3 py-2 border border-slate-300 rounded-xl" /></div>
+            </div>
+
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+              <p class="text-[11px] font-extrabold uppercase text-slate-600">Signos Vitales de Triaje</p>
+              <div class="grid grid-cols-4 gap-2 text-xs">
+                <div><label class="block text-[10px]">PAS</label><input type="number" id="rec-pas" placeholder="120" class="w-full px-2 py-1 bg-white border border-slate-300 rounded-lg"></div>
+                <div><label class="block text-[10px]">PAD</label><input type="number" id="rec-pad" placeholder="80" class="w-full px-2 py-1 bg-white border border-slate-300 rounded-lg"></div>
+                <div><label class="block text-[10px]">FC</label><input type="number" id="rec-hr" placeholder="75" class="w-full px-2 py-1 bg-white border border-slate-300 rounded-lg"></div>
+                <div><label class="block text-[10px]">FR</label><input type="number" id="rec-rr" placeholder="18" class="w-full px-2 py-1 bg-white border border-slate-300 rounded-lg"></div>
+                <div><label class="block text-[10px]">Temp °C</label><input type="number" step="0.1" id="rec-temp" placeholder="36.5" class="w-full px-2 py-1 bg-white border border-slate-300 rounded-lg"></div>
+                <div><label class="block text-[10px]">SatO₂ %</label><input type="number" id="rec-spo2" placeholder="96" class="w-full px-2 py-1 bg-white border border-slate-300 rounded-lg"></div>
+                <div><label class="block text-[10px]">Peso kg</label><input type="number" step="0.1" id="rec-weight" placeholder="65" class="w-full px-2 py-1 bg-white border border-slate-300 rounded-lg"></div>
+                <div><label class="block text-[10px]">Talla cm</label><input type="number" id="rec-height" placeholder="162" class="w-full px-2 py-1 bg-white border border-slate-300 rounded-lg"></div>
+              </div>
+            </div>
+
+            <button type="button" onclick="addToWaitlist()" class="w-full py-2.5 text-xs font-extrabold text-white bg-clinical-600 hover:bg-clinical-700 rounded-xl cursor-pointer">
+              + Ingresar Paciente a Sala de Espera
+            </button>
+          </div>
+
+          <!-- Lista de Pacientes en Sala de Espera -->
+          <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+              <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-800">Pacientes en Sala de Espera (Listos para Consulta)</h2>
+              <span class="text-xs text-slate-500">Haga clic en "Atender en Consulta" para pasar el triaje al médico</span>
+            </div>
+            <div id="waitlist-container" class="space-y-3"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- PESTAÑA 3: INFORMES ECOGRÁFICOS Y PROCEDIMIENTOS                   -->
+      <!-- ================================================================= -->
+      <div id="view-ecografia" class="main-view hidden">
+        <div class="max-w-4xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div>
+              <h2 class="text-base font-extrabold text-slate-900">Generador de Informes Ecográficos y Procedimientos</h2>
+              <p class="text-xs text-slate-500">Se vincula automáticamente con el paciente activo en consulta y se imprime con firma y sello digital.</p>
+            </div>
+            <button type="button" onclick="printDoc('eco')" class="px-4 py-2 text-xs font-extrabold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl cursor-pointer">
+              Imprimir / PDF Informe Ecográfico
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div>
+              <label class="block font-bold mb-1">Seleccionar Plantilla Estructurada:</label>
+              <select id="eco-template-select" onchange="loadEcoTemplate()" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white font-bold">
+                <option value="Ecografía Obstétrica">Ecografía Obstétrica (Fetal y Placentaria)</option>
+                <option value="Ecografía Abdominal Completa">Ecografía Abdominal Completa</option>
+                <option value="Ecografía Renal y Vías Urinarias">Ecografía Renal y Vías Urinarias</option>
+                <option value="Ecografía Tiroidea y Cervical">Ecografía Tiroidea y Cervical</option>
+                <option value="Informe de Electrocardiograma (ECG)">Informe de Electrocardiograma (ECG 12 deriv.)</option>
+                <option value="Nota Operatoria de Cirugía Menor / Curación">Nota de Procedimiento / Cirugía Menor</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold mb-1">Médico Solicitante / Referencia</label>
+              <input type="text" id="eco-requester" value="A solicitud del paciente / Consulta externa" class="w-full px-3 py-2 border border-slate-300 rounded-xl" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Descripción de Hallazgos (Valores normales precargados — editables):</label>
+            <textarea id="eco-findings" rows="12" class="w-full px-3.5 py-2.5 text-xs border border-slate-300 rounded-xl leading-relaxed font-mono"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Conclusión / Impresión Ecográfica:</label>
+            <textarea id="eco-conclusion" rows="3" class="w-full px-3.5 py-2 text-xs font-bold border border-slate-300 rounded-xl"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- PESTAÑA 4: ODONTOGRAMA, OFTALMO/ORL Y ESQUEMA DE VACUNACIÓN PAI   -->
+      <!-- ================================================================= -->
+      <div id="view-polivalente" class="main-view hidden space-y-5">
+        <!-- ODONTOGRAMA INTERACTIVO -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
+            <div>
+              <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-800">Odontograma Interactivo (Nomenclatura FDI)</h2>
+              <p class="text-xs text-slate-500">Haga clic sobre cada pieza dental para alternar estado: Sano → Caries (Rojo) → Restaurado (Azul) → Endodoncia (Naranja) → Ausente (Gris).</p>
+            </div>
+            <button type="button" onclick="resetOdontogram()" class="px-3 py-1 text-xs font-bold text-slate-600 bg-slate-100 rounded-lg cursor-pointer">Reiniciar Piezas</button>
+          </div>
+
+          <div class="overflow-x-auto py-2">
+            <div class="min-w-[680px] space-y-3 text-center">
+              <p class="text-[10px] font-bold uppercase text-slate-400">Arcada Superior (Derecha 18-11 | Izquierda 21-28)</p>
+              <div id="odonto-upper" class="flex justify-center gap-1.5"></div>
+              <div id="odonto-lower" class="flex justify-center gap-1.5"></div>
+              <p class="text-[10px] font-bold uppercase text-slate-400">Arcada Inferior (Derecha 48-41 | Izquierda 31-38)</p>
+            </div>
+          </div>
+          <div id="odonto-summary" class="text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-medium text-slate-700">Todas las piezas dentales marcadas como sanas.</div>
+        </div>
+
+        <!-- OFTALMOLOGÍA / ORL + ESQUEMA VACUNACIÓN PAI -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <!-- Oftalmología y ORL -->
+          <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-3 text-xs">
+            <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-800 border-b border-slate-100 pb-2">Esquema Oftalmológico y ORL</h2>
+            <div class="grid grid-cols-2 gap-3">
+              <div><label class="block font-bold mb-1">Agudeza Visual OD (Snellen)</label><input type="text" id="oph-od" placeholder="20/20" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg"></div>
+              <div><label class="block font-bold mb-1">Agudeza Visual OI (Snellen)</label><input type="text" id="oph-oi" placeholder="20/25" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg"></div>
+              <div><label class="block font-bold mb-1">Otoscopia Oído Derecho</label><input type="text" id="orl-od" placeholder="CAE permeable, MT íntegra" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg"></div>
+              <div><label class="block font-bold mb-1">Otoscopia Oído Izquierdo</label><input type="text" id="orl-oi" placeholder="CAE permeable, MT íntegra" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg"></div>
+              <div class="col-span-2"><label class="block font-bold mb-1">Orofaringe y Rinoscopia</label><input type="text" id="orl-throat" placeholder="Amígdalas eutróficas, sin exudados..." class="w-full px-3 py-1.5 border border-slate-300 rounded-lg"></div>
+            </div>
+          </div>
+
+          <!-- Control de Vacunación PAI -->
+          <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-3 text-xs">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+              <h2 class="text-sm font-extrabold uppercase tracking-wider text-emerald-900">Control de Vacunación (Esquema PAI)</h2>
+              <span class="text-[11px] text-slate-500">Calcula automáticamente la fecha de refuerzo</span>
+            </div>
+            <div class="overflow-x-auto max-h-64">
+              <table class="w-full text-left border-collapse">
+                <thead><tr class="bg-slate-100 text-[11px]"><th class="p-2">Aplicada</th><th class="p-2">Vacuna (PAI)</th><th class="p-2">Fecha Aplicación</th><th class="p-2">Próximo Refuerzo</th></tr></thead>
+                <tbody id="pai-vaccines-tbody" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- PESTAÑA 5: HISTORIAL LONGITUDINAL Y ESTADÍSTICAS SNIS / MORBILIDAD-->
+      <!-- ================================================================= -->
+      <div id="view-historial" class="main-view hidden space-y-5">
+        <!-- Reporte Estadístico Epidemiológico SNIS -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div>
+              <h2 class="text-base font-extrabold text-slate-900">Reporte Estadístico Epidemiológico (Morbilidad CIE-10 / SNIS)</h2>
+              <p class="text-xs text-slate-500">Top 10 patologías más frecuentes, distribución por grupos etarios y sexo para informes mensuales.</p>
+            </div>
+            <button type="button" onclick="exportEpidemiologyCSV()" class="px-4 py-2 text-xs font-extrabold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl cursor-pointer">
+              Exportar Estadística Epidemiológica a Excel (.CSV)
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            <div class="lg:col-span-7 overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead><tr class="bg-slate-100 text-[11px] uppercase"><th class="p-2">#</th><th class="p-2">Código CIE-10</th><th class="p-2">Diagnóstico / Patología</th><th class="p-2 text-right">Casos</th><th class="p-2 text-right">%</th></tr></thead>
+                <tbody id="snis-top10-tbody" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+            <div class="lg:col-span-5 bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 text-xs">
+              <p class="font-extrabold uppercase text-slate-700">Distribución Etaria y por Sexo</p>
+              <div id="snis-demographics-box" class="space-y-2"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Expedientes Agrupados por Paciente -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <h2 class="text-base font-extrabold text-slate-900">Expedientes Clínicos por Paciente (Evolución Longitudinal)</h2>
+            <input type="text" id="exp-search-input" oninput="renderExpedientesView()" placeholder="Filtrar paciente por nombre, CI o diagnóstico..." class="w-full sm:w-72 px-3 py-1.5 text-xs border border-slate-300 rounded-xl" />
+          </div>
+          <div id="expedientes-grouped-list" class="space-y-3"></div>
+        </div>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- PESTAÑA 6: BOTIQUÍN / INSUMOS Y CAJA DIARIA (BS.)                 -->
+      <!-- ================================================================= -->
+      <div id="view-caja" class="main-view hidden space-y-5">
+        <!-- Control de Insumos y Botiquín -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
+            <div>
+              <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-800">Control de Insumos y Botiquín de Consultorio</h2>
+              <p class="text-xs text-slate-500">Descuento rápido en un clic al usar ampollas, suturas o materiales; alerta automática en stock bajo.</p>
+            </div>
+            <div class="flex gap-2 text-xs">
+              <input type="text" id="inv-new-name" placeholder="Nuevo insumo (ej. Sutura Nylon 3-0)" class="px-2.5 py-1.5 border border-slate-300 rounded-lg" />
+              <input type="number" id="inv-new-qty" placeholder="Cant." class="w-20 px-2.5 py-1.5 border border-slate-300 rounded-lg" />
+              <button type="button" onclick="addInventoryItem()" class="px-3 py-1.5 font-bold text-white bg-clinical-600 rounded-lg cursor-pointer">+ Añadir</button>
+            </div>
+          </div>
+          <div id="inventory-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs"></div>
+        </div>
+
+        <!-- Caja Diaria y Libro Diario Exportable -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div class="flex flex-wrap gap-4 text-xs">
+              <div class="px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200"><span class="text-emerald-700 font-bold block">TOTAL CAJA</span><strong class="text-lg text-emerald-900" id="kpi-total-bs">0.00 Bs.</strong></div>
+              <div class="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200"><span class="text-slate-600 font-bold block">EFECTIVO</span><strong class="text-lg text-slate-900" id="kpi-cash-bs">0.00 Bs.</strong></div>
+              <div class="px-3 py-2 rounded-xl bg-clinical-50 border border-clinical-200"><span class="text-clinical-700 font-bold block">PAGO QR</span><strong class="text-lg text-clinical-900" id="kpi-qr-bs">0.00 Bs.</strong></div>
+            </div>
+            <button type="button" onclick="exportToExcelCSV()" class="px-4 py-2.5 text-xs font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl cursor-pointer">
+              Exportar Registro Médico y Caja a Excel (.CSV)
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead><tr class="bg-slate-100 text-[11px] uppercase"><th class="p-2.5">Fecha</th><th class="p-2.5">Paciente / CI</th><th class="p-2.5">Diagnóstico</th><th class="p-2.5">Método</th><th class="p-2.5 text-right">Monto (Bs.)</th></tr></thead>
+              <tbody id="ledger-table-body" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- PESTAÑA 7: FIRMA DIGITAL, SELLO, CONFIGURACIÓN Y RESPALDOS        -->
+      <!-- ================================================================= -->
+      <div id="view-firma" class="main-view hidden">
+        <div class="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <!-- Datos del Consultorio y PIN -->
+          <div class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-3 text-xs">
+            <h2 class="text-sm font-extrabold uppercase text-slate-800 border-b border-slate-100 pb-2">Datos del Consultorio y Seguridad PIN</h2>
+            <div><label class="block font-bold mb-1">Nombre de Clínica / Consultorio</label><input type="text" id="cfg-clinic" class="w-full px-3 py-2 border border-slate-300 rounded-xl" /></div>
+            <div><label class="block font-bold mb-1">Nombre y Título del Médico</label><input type="text" id="cfg-name" class="w-full px-3 py-2 border border-slate-300 rounded-xl" /></div>
+            <div><label class="block font-bold mb-1">Especialidad</label><input type="text" id="cfg-spec" class="w-full px-3 py-2 border border-slate-300 rounded-xl" /></div>
+            <div><label class="block font-bold mb-1">Matrícula Profesional / Colegio Médico</label><input type="text" id="cfg-reg" class="w-full px-3 py-2 border border-slate-300 rounded-xl" /></div>
+            <div class="grid grid-cols-2 gap-2">
+              <div><label class="block font-bold mb-1">Teléfono Consultorio</label><input type="text" id="cfg-phone" class="w-full px-3 py-2 border border-slate-300 rounded-xl" /></div>
+              <div><label class="block font-bold mb-1">PIN de Bloqueo (4 dígitos)</label><input type="text" maxlength="4" id="cfg-pin" class="w-full px-3 py-2 border border-slate-300 rounded-xl font-extrabold tracking-widest" /></div>
+            </div>
+            <div><label class="block font-bold mb-1">Dirección del Consultorio</label><input type="text" id="cfg-addr" class="w-full px-3 py-2 border border-slate-300 rounded-xl" /></div>
+            <button type="button" onclick="saveDoctorConfig()" class="w-full py-2.5 font-extrabold text-white bg-clinical-600 hover:bg-clinical-700 rounded-xl cursor-pointer">Guardar Configuración</button>
+
+            <div class="pt-3 border-t border-slate-200 flex flex-wrap gap-2">
+              <button type="button" onclick="exportJSONBackup()" class="px-3 py-2 font-bold text-clinical-700 bg-clinical-50 border border-clinical-200 rounded-xl cursor-pointer">Descargar Respaldo (.JSON)</button>
+              <label class="px-3 py-2 font-bold text-slate-700 bg-slate-100 border border-slate-300 rounded-xl cursor-pointer">Restaurar (.JSON)<input type="file" accept=".json" onchange="importJSONBackup(event)" class="hidden" /></label>
+            </div>
+          </div>
+
+          <!-- Firma Digital Dibujable y Subida de Sello -->
+          <div class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-3 text-xs">
+            <h2 class="text-sm font-extrabold uppercase text-slate-800 border-b border-slate-100 pb-2">Firma Digital y Sello Profesional (Estampado en PDF)</h2>
+            <p class="text-slate-500">Dibuje su firma en el recuadro con el mouse o dedo, o suba una imagen PNG/JPG de su firma y sello para que aparezcan automáticamente en recetas, certificados y órdenes.</p>
+
+            <div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-2">
+              <canvas id="signature-pad" width="380" height="120" class="w-full h-28 bg-white rounded-lg cursor-crosshair touch-none"></canvas>
+              <div class="flex justify-between items-center mt-2">
+                <button type="button" onclick="clearSignaturePad()" class="px-2.5 py-1 text-rose-700 font-bold hover:underline cursor-pointer">Limpiar Trazo</button>
+                <button type="button" onclick="saveDrawnSignature()" class="px-3 py-1 bg-slate-800 text-white font-bold rounded-lg cursor-pointer">Guardar Firma Dibujada</button>
+              </div>
+            </div>
+
+            <div class="pt-2">
+              <label class="block font-bold mb-1">O subir imagen de Firma + Sello (PNG/JPG):</label>
+              <input type="file" accept="image/*" onchange="uploadSignatureImage(event)" class="w-full text-xs border border-slate-300 rounded-xl p-1.5 bg-slate-50" />
+            </div>
+
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-center">
+              <span class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Vista Previa del Sello / Firma Activa</span>
+              <img id="sig-preview-img" src="" alt="Sin firma cargada" class="max-h-20 mx-auto hidden" />
+              <p id="sig-empty-txt" class="text-slate-400 italic py-2">Aún no ha guardado una firma digital.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- PLANTILLAS DE IMPRESIÓN INDEPENDIENTES (@media print)                 -->
+  <!-- ===================================================================== -->
+  <div id="print-container" class="hidden">
+
+    <!-- 1. HISTORIA CLÍNICA (+ MAPA CORPORAL) -->
+    <div id="sheet-hc" class="print-sheet max-w-[210mm] mx-auto text-xs">
+      <div class="border-b-2 border-slate-900 pb-2 mb-3 flex justify-between">
+        <div><h1 class="text-base font-extrabold uppercase" id="phc-clinic"></h1><p class="font-bold" id="phc-doc"></p><p class="text-[11px]" id="phc-sub"></p></div>
+        <div class="text-right text-[11px]"><p><strong>HISTORIA CLÍNICA</strong></p><p id="phc-date"></p></div>
+      </div>
+      <div class="border border-slate-300 p-2 rounded mb-2.5 grid grid-cols-3 gap-1">
+        <div class="col-span-2"><strong>Paciente:</strong> <span id="phc-pt"></span></div>
+        <div><strong>CI:</strong> <span id="phc-ci"></span></div>
+        <div><strong>Edad/Sexo:</strong> <span id="phc-agesex"></span></div>
+        <div><strong>Teléfono:</strong> <span id="phc-phone"></span></div>
+        <div><strong>Alergias:</strong> <span id="phc-allergies"></span></div>
+        <div class="col-span-3"><strong>Acompañante:</strong> <span id="phc-comp"></span></div>
+      </div>
+      <div id="phc-viol-box" class="hidden border-2 border-slate-900 p-2 rounded mb-2.5">
+        <p class="font-extrabold uppercase">CONSTANCIA MÉDICO-LEGAL POR VIOLENCIA</p>
+        <p id="phc-viol-text" class="whitespace-pre-line"></p>
+      </div>
+      <div class="border border-slate-300 p-1.5 rounded mb-2.5 text-center font-semibold" id="phc-vitals"></div>
+      <div class="space-y-1.5 mb-2.5">
+        <p><strong>Motivo:</strong> <span id="phc-reason"></span></p>
+        <p><strong>Examen Físico / Evolución:</strong> <span id="phc-exam" class="whitespace-pre-line"></span></p>
+        <div id="phc-bodymap-print" class="hidden border border-slate-300 p-2 rounded">
+          <p class="font-bold uppercase text-[10px] mb-1">Hallazgos Topográficos (Mapa Corporal):</p>
+          <p id="phc-bodymap-list" class="text-[11px]"></p>
+        </div>
+        <p class="font-bold text-sm pt-1">Diagnóstico: <span id="phc-diag"></span></p>
+        <div id="phc-rx" class="pt-1"></div>
+      </div>
+      <div class="mt-8 flex justify-end">
+        <div class="w-60 text-center">
+          <img id="phc-sig-img" class="max-h-14 mx-auto mb-1 hidden" />
+          <div class="border-t border-slate-900 pt-1"><p class="font-bold" id="phc-sign-name"></p><p class="text-[10px]" id="phc-sign-reg"></p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. RECETA MÉDICA -->
+    <div id="sheet-rx" class="print-sheet max-w-[148mm] mx-auto text-xs">
+      <div class="border-b-2 border-slate-900 pb-2 mb-3 flex justify-between">
+        <div><h1 class="text-base font-extrabold uppercase" id="prx-clinic"></h1><p class="font-bold" id="prx-doc"></p><p class="text-[10px]" id="prx-sub"></p></div>
+        <div class="text-right"><span class="border border-slate-900 px-2 py-0.5 font-bold">RECETA MÉDICA</span><p class="mt-1" id="prx-date"></p></div>
+      </div>
+      <div class="border border-slate-300 p-2 rounded mb-3 grid grid-cols-2 gap-1 text-[11px]">
+        <div><strong>Paciente:</strong> <span id="prx-pt"></span></div>
+        <div><strong>CI / Edad:</strong> <span id="prx-cied"></span></div>
+        <div class="col-span-2"><strong>Diagnóstico:</strong> <span id="prx-diag"></span></div>
+      </div>
+      <div class="min-h-[110mm]">
+        <p class="font-serif italic font-bold text-lg mb-2">Rp /</p>
+        <div id="prx-meds" class="space-y-2.5"></div>
+        <div class="mt-4 pt-2 border-t border-slate-300"><strong>Indicaciones:</strong> <span id="prx-notes" class="whitespace-pre-line"></span></div>
+      </div>
+      <div class="mt-6 flex justify-end">
+        <div class="w-56 text-center">
+          <img id="prx-sig-img" class="max-h-14 mx-auto mb-1 hidden" />
+          <div class="border-t border-slate-900 pt-1"><p class="font-bold" id="prx-sign-name"></p><p class="text-[10px]" id="prx-sign-reg"></p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. ORDEN DE LABORATORIO -->
+    <div id="sheet-lab" class="print-sheet max-w-[148mm] mx-auto text-xs">
+      <div class="border-b-2 border-slate-900 pb-2 mb-3 flex justify-between">
+        <div><h1 class="text-base font-extrabold uppercase" id="plab-clinic"></h1><p class="font-bold" id="plab-doc"></p></div>
+        <div class="text-right"><span class="border border-slate-900 px-2 py-0.5 font-bold">ORDEN DE LABORATORIO</span><p class="mt-1" id="plab-date"></p></div>
+      </div>
+      <p class="border border-slate-300 p-2 rounded mb-3"><strong>Paciente:</strong> <span id="plab-pt"></span> • <strong>Dx:</strong> <span id="plab-diag"></span></p>
+      <div id="plab-items" class="space-y-1 min-h-[100mm]"></div>
+      <p class="mt-2 text-[11px]"><strong>Indicaciones:</strong> <span id="plab-ind"></span></p>
+      <div class="mt-6 flex justify-end"><div class="w-56 text-center"><img id="plab-sig-img" class="max-h-14 mx-auto mb-1 hidden" /><div class="border-t border-slate-900 pt-1"><p class="font-bold" id="plab-sign-name"></p></div></div></div>
+    </div>
+
+    <!-- 4. ORDEN DE GABINETE -->
+    <div id="sheet-img" class="print-sheet max-w-[148mm] mx-auto text-xs">
+      <div class="border-b-2 border-slate-900 pb-2 mb-3 flex justify-between">
+        <div><h1 class="text-base font-extrabold uppercase" id="pimg-clinic"></h1><p class="font-bold" id="pimg-doc"></p></div>
+        <div class="text-right"><span class="border border-slate-900 px-2 py-0.5 font-bold">ORDEN DE GABINETE</span><p class="mt-1" id="pimg-date"></p></div>
+      </div>
+      <p class="border border-slate-300 p-2 rounded mb-3"><strong>Paciente:</strong> <span id="pimg-pt"></span> • <strong>Dx:</strong> <span id="pimg-diag"></span></p>
+      <div id="pimg-items" class="space-y-1 min-h-[100mm]"></div>
+      <div class="mt-6 flex justify-end"><div class="w-56 text-center"><img id="pimg-sig-img" class="max-h-14 mx-auto mb-1 hidden" /><div class="border-t border-slate-900 pt-1"><p class="font-bold" id="pimg-sign-name"></p></div></div></div>
+    </div>
+
+    <!-- 5. CERTIFICADO MÉDICO -->
+    <div id="sheet-cert" class="print-sheet max-w-[180mm] mx-auto text-sm leading-relaxed">
+      <div class="border-b-2 border-slate-900 pb-2 mb-6 flex justify-between">
+        <div><h1 class="text-base font-extrabold uppercase" id="pcert-clinic"></h1><p class="text-xs font-bold" id="pcert-doc"></p></div>
+        <p class="text-xs" id="pcert-date"></p>
+      </div>
+      <h2 class="text-center font-extrabold uppercase underline mb-6" id="pcert-title">CERTIFICADO MÉDICO</h2>
+      <div id="pcert-body" class="min-h-[110mm] whitespace-pre-line text-justify"></div>
+      <div class="mt-12 flex justify-center"><div class="w-64 text-center text-xs"><img id="pcert-sig-img" class="max-h-14 mx-auto mb-1 hidden" /><div class="border-t border-slate-900 pt-1"><p class="font-bold" id="pcert-sign-name"></p><p id="pcert-sign-reg"></p></div></div></div>
+    </div>
+
+    <!-- 6. HOJA DE REFERENCIA Y CONTRAREFERENCIA -->
+    <div id="sheet-ref" class="print-sheet max-w-[210mm] mx-auto text-xs leading-normal">
+      <div class="border-b-2 border-slate-900 pb-2 mb-3 flex justify-between">
+        <div><h1 class="text-base font-extrabold uppercase">HOJA DE REFERENCIA MÉDICA / TRASLADO</h1><p class="font-bold" id="pref-clinic"></p></div>
+        <div class="text-right"><p><strong>Fecha:</strong> <span id="pref-date"></span></p><p class="font-extrabold" id="pref-prio"></p></div>
+      </div>
+      <div class="border border-slate-400 p-2.5 rounded mb-3 space-y-1">
+        <p><strong>Establecimiento Destino:</strong> <span id="pref-hosp"></span> — <strong>Servicio:</strong> <span id="pref-serv"></span></p>
+        <p><strong>Paciente:</strong> <span id="pref-pt"></span></p>
+        <p><strong>Signos Vitales al Traslado:</strong> <span id="pref-vitals"></span></p>
+      </div>
+      <div class="space-y-2 min-h-[100mm]">
+        <p><strong>Resumen Clínico y Motivo de Referencia:</strong><br><span id="pref-summary" class="whitespace-pre-line"></span></p>
+        <p><strong>Impresión Diagnóstica:</strong> <span id="pref-diag" class="font-bold"></span></p>
+        <p><strong>Manejo Inicial Administrado:</strong> <span id="pref-tx"></span></p>
+        <p><strong>Medio de Transporte:</strong> <span id="pref-trans"></span></p>
+      </div>
+      <div class="mt-10 flex justify-end"><div class="w-64 text-center"><img id="pref-sig-img" class="max-h-14 mx-auto mb-1 hidden" /><div class="border-t border-slate-900 pt-1"><p class="font-bold" id="pref-sign-name"></p><p class="text-[10px]" id="pref-sign-reg"></p></div></div></div>
+    </div>
+
+    <!-- 7. CONSENTIMIENTO INFORMADO -->
+    <div id="sheet-consent" class="print-sheet max-w-[180mm] mx-auto text-xs leading-relaxed">
+      <div class="border-b-2 border-slate-900 pb-2 mb-4 flex justify-between">
+        <div><h1 class="text-base font-extrabold uppercase" id="pcon-clinic"></h1><p class="font-bold" id="pcon-doc"></p></div>
+        <p id="pcon-date"></p>
+      </div>
+      <h2 class="text-center text-sm font-extrabold uppercase underline mb-4">ACTA DE CONSENTIMIENTO INFORMADO</h2>
+      <div id="pcon-body" class="min-h-[120mm] whitespace-pre-line text-justify"></div>
+      <div class="mt-14 grid grid-cols-3 gap-4 items-end text-center text-[11px]">
+        <div class="border-t border-slate-900 pt-1"><p class="font-bold">Firma del Paciente / Tutor</p><p id="pcon-pt-sign"></p></div>
+        <div class="border border-slate-400 h-20 w-20 mx-auto flex items-end justify-center pb-1 text-[9px] text-slate-400">Huella Dactilar</div>
+        <div><img id="pcon-sig-img" class="max-h-12 mx-auto mb-1 hidden" /><div class="border-t border-slate-900 pt-1"><p class="font-bold" id="pcon-sign-name"></p><p>Médico Tratante</p></div></div>
+      </div>
+    </div>
+
+    <!-- 8. INFORME ECOGRÁFICO / PROCEDIMIENTO -->
+    <div id="sheet-eco" class="print-sheet max-w-[210mm] mx-auto text-xs leading-relaxed">
+      <div class="border-b-2 border-slate-900 pb-2 mb-3 flex justify-between">
+        <div><h1 class="text-base font-extrabold uppercase" id="peco-clinic"></h1><p class="font-bold" id="peco-doc"></p></div>
+        <div class="text-right"><p class="font-extrabold uppercase" id="peco-title"></p><p id="peco-date"></p></div>
+      </div>
+      <p class="border border-slate-300 p-2 rounded mb-3"><strong>Paciente:</strong> <span id="peco-pt"></span> • <strong>Solicitante:</strong> <span id="peco-req"></span></p>
+      <div class="min-h-[125mm] space-y-3">
+        <div><p class="font-bold uppercase underline mb-1">Hallazgos del Estudio:</p><p id="peco-find" class="whitespace-pre-line"></p></div>
+        <div class="border-t border-slate-300 pt-2"><p class="font-bold uppercase underline mb-1">Conclusión Diagnóstica:</p><p id="peco-conc" class="font-bold whitespace-pre-line"></p></div>
+      </div>
+      <div class="mt-8 flex justify-end"><div class="w-64 text-center"><img id="peco-sig-img" class="max-h-14 mx-auto mb-1 hidden" /><div class="border-t border-slate-900 pt-1"><p class="font-bold" id="peco-sign-name"></p><p class="text-[10px]" id="peco-sign-reg"></p></div></div></div>
+    </div>
+
+    <!-- 9. EXPEDIENTE CRONOLÓGICO COMPLETO -->
+    <div id="sheet-exp" class="print-sheet max-w-[210mm] mx-auto text-xs">
+      <div class="border-b-2 border-slate-900 pb-2 mb-3 flex justify-between">
+        <div><h1 class="text-base font-extrabold uppercase">EXPEDIENTE CLÍNICO CRONOLÓGICO</h1><p class="font-bold" id="pexp-doc"></p></div>
+        <p id="pexp-date"></p>
+      </div>
+      <p class="bg-slate-100 p-2 rounded mb-3"><strong>Paciente:</strong> <span id="pexp-pt"></span></p>
+      <div id="pexp-list" class="space-y-3"></div>
+    </div>
+
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- JAVASCRIPT COMPLETO DE LA SUITE                                       -->
+  <!-- ===================================================================== -->
+  <script>
+    const KEYS = {
+      DOCTOR: 'mc360_suite_doctor',
+      VADEMECUM: 'mc360_suite_vademecum',
+      RECORDS: 'mc360_suite_records',
+      WAITLIST: 'mc360_suite_waitlist',
+      INVENTORY: 'mc360_suite_inventory'
+    };
+
+    const DEFAULT_DOCTOR = {
+      clinic: 'MediConsultorio Pro 360',
+      name: 'Dr. Alejandro Mendoza',
+      specialty: 'Medicina General y Especialidades',
+      reg: 'Mat. Prof. MP-45892 • Col. Méd. 10482',
+      phone: '71548920',
+      pin: '1234',
+      address: 'Av. 6 de Marzo #450, El Alto - La Paz, Bolivia',
+      signatureDataUrl: ''
+    };
+
+    const ALLERGY_GROUPS = [
+      { keywords: ['penicilina', 'amoxicilina', 'ampicilina'], drugs: ['amoxicilina', 'ampicilina', 'penicilina', 'dicloxacilina', 'cefalexina', 'ceftriaxona'] },
+      { keywords: ['aine', 'ibuprofeno', 'diclofenaco', 'ketorolaco', 'naproxeno', 'aspirina'], drugs: ['ibuprofeno', 'diclofenaco', 'ketorolaco', 'naproxeno', 'meloxicam', 'aspirina'] },
+      { keywords: ['dipirona', 'metamizol'], drugs: ['dipirona', 'metamizol'] },
+      { keywords: ['sulfa', 'cotrimoxazol'], drugs: ['sulfametoxazol', 'cotrimoxazol'] }
+    ];
+
+    const DEFAULT_VADEMECUM = [
+      { id: 'v1', grp: 'Antibióticos', name: 'Amoxicilina + Ácido Clavulánico', conc: '875/125 mg', form: 'Comprimidos', qty: '14 comp.', dose: '1 comprimido', route: 'Vía Oral', freq: 'Cada 12 horas por 7 días', manner: 'Tomar después de las comidas.' },
+      { id: 'v2', grp: 'Antibióticos', name: 'Azitromicina', conc: '500 mg', form: 'Comprimidos', qty: '3 comp.', dose: '1 comprimido', route: 'Vía Oral', freq: 'Cada 24 horas por 3 días', manner: '1 hora antes de los alimentos.' },
+      { id: 'v3', grp: 'Analgésicos / AINEs', name: 'Paracetamol', conc: '500 mg', form: 'Comprimidos', qty: '20 comp.', dose: '1 comprimido', route: 'Vía Oral', freq: 'Cada 8 horas por 4 días', manner: 'En caso de dolor o fiebre.' },
+      { id: 'v4', grp: 'Analgésicos / AINEs', name: 'Ibuprofeno', conc: '400 mg', form: 'Comprimidos', qty: '15 comp.', dose: '1 comprimido', route: 'Vía Oral', freq: 'Cada 8 horas por 4 días', manner: 'Después de las comidas.' },
+      { id: 'v5', grp: 'Gastrointestinales', name: 'Omeprazol', conc: '20 mg', form: 'Cápsulas', qty: '14 cáps.', dose: '1 cápsula', route: 'Vía Oral', freq: 'Cada 24 horas por 14 días', manner: 'En ayunas 30 min antes del desayuno.' },
+      { id: 'v6', grp: 'Respiratorios', name: 'Loratadina', conc: '10 mg', form: 'Comprimidos', qty: '10 comp.', dose: '1 comprimido', route: 'Vía Oral', freq: 'Cada 24 horas por 7 días', manner: 'Por la noche.' },
+      { id: 'v7', grp: 'Cardiovasculares', name: 'Losartán Potásico', conc: '50 mg', form: 'Comprimidos', qty: '30 comp.', dose: '1 comprimido', route: 'Vía Oral', freq: 'Cada 24 horas', manner: 'Tratamiento continuo.' },
+      { id: 'v8', grp: 'Gineco-Obstétricos', name: 'Sulfato Ferroso + Ácido Fólico', conc: '200/0.5 mg', form: 'Comprimidos', qty: '30 comp.', dose: '1 comprimido', route: 'Vía Oral', freq: 'Cada 24 horas por 30 días', manner: 'Con jugo cítrico.' },
+      { id: 'v9', grp: 'Pediátricos', name: 'Amoxicilina Suspensión', conc: '250 mg/5ml', form: 'Suspensión', qty: '1 frasco', dose: 'Según peso (ml)', route: 'Vía Oral', freq: 'Cada 8 horas por 7 días', manner: 'Agitar antes de usar.' }
+    ];
+
+    const DEFAULT_INVENTORY = [
+      { id: 'inv1', name: 'Guantes de Examen (Par)', stock: 45, min: 15 },
+      { id: 'inv2', name: 'Jeringas Descartables 5 ml', stock: 28, min: 10 },
+      { id: 'inv3', name: 'Diclofenaco 75 mg Ampolla', stock: 8, min: 5 },
+      { id: 'inv4', name: 'Sutura Nylon 3-0 con Aguja', stock: 4, min: 5 },
+      { id: 'inv5', name: 'Lidocaína 2% sin Epinefrina (Frasco)', stock: 3, min: 2 },
+      { id: 'inv6', name: 'Gasas Estériles (Sobre)', stock: 30, min: 10 },
+      { id: 'inv7', name: 'Gel Ecográfico (Frasco)', stock: 2, min: 2 },
+      { id: 'inv8', name: 'Tiras Reactivas Glucemia', stock: 22, min: 10 }
+    ];
+
+    const PAI_VACCINES = [
+      { name: 'BCG (Formas graves Tuberculosis)', boosterMonths: 0 },
+      { name: 'Pentavalente (DPT-HB-Hib) 1ra/2da/3ra', boosterMonths: 2 },
+      { name: 'Antipolio (IPV / bOPV)', boosterMonths: 2 },
+      { name: 'Antineumocócica Conjugada', boosterMonths: 2 },
+      { name: 'Antirrotavirus', boosterMonths: 2 },
+      { name: 'SRP (Sarampión, Rubéola, Paperas)', boosterMonths: 6 },
+      { name: 'Antiamarílica (Fiebre Amarilla)', boosterMonths: 0 },
+      { name: 'VPH (Virus Papiloma Humano)', boosterMonths: 6 },
+      { name: 'dT Adulto / Embarazada (Tétanos-Difteria)', boosterMonths: 1 },
+      { name: 'Influenza Estacional', boosterMonths: 12 }
+    ];
+
+    const ECO_TEMPLATES = {
+      'Ecografía Obstétrica': {
+        findings: 'Feto único vivo, en situación longitudinal, presentación cefálica.\nActividad cardíaca fetal presente y rítmica: 144 lpm.\nMovimientos fetales y tono conservados.\nBiometría fetal acorde a edad gestacional.\nPlacenta normoinserta en cara anterior, grado I de madurez.\nLíquido amniótico en cantidad normal (ILA: 13.5 cm).\nCordón umbilical trivascular.',
+        conclusion: '1. Gestación única evolutiva acorde a edad gestacional.\n2. Vitalidad fetal conservada.'
+      },
+      'Ecografía Abdominal Completa': {
+        findings: 'Hígado de tamaño, forma y ecogenicidad homogénea conservada, sin lesiones focales.\nVesícula biliar de paredes delgadas (< 3 mm), contenido anecoico sin imágenes litiásicas.\nVía biliar intra y extrahepática de calibre normal.\nPáncreas y bazo sin alteraciones ecográficas.\nAorta abdominal de calibre conservado. No líquido libre en cavidad.',
+        conclusion: 'Estudio ecográfico abdominal dentro de parámetros normales.'
+      },
+      'Ecografía Renal y Vías Urinarias': {
+        findings: 'Riñón derecho e izquierdo en situación habitual, contornos regulares, buena diferenciación corticomedular, sin ectasia pielocalicial ni imágenes litiásicas.\nVejiga urinaria con adecuada repleción, paredes lisas y regulares, residuo postmiccional no significativo.',
+        conclusion: 'Riñones y vías urinarias ecográficamente normales.'
+      },
+      'Ecografía Tiroidea y Cervical': {
+        findings: 'Glándula tiroides de ubicación habitual, lóbulo derecho e izquierdo de dimensiones normales y ecoestructura homogénea.\nIstmo de espesor conservado. Ausencia de nódulos sólidos o quísticos.\nCadenas ganglionares cervicales sin adenopatías patológicas.',
+        conclusion: 'Glándula tiroides de características ecográficas normales.'
+      },
+      'Informe de Electrocardiograma (ECG)': {
+        findings: 'Ritmo sinusal regular.\nFrecuencia cardíaca: 74 lpm.\nEje eléctrico QRS: +45° (normal).\nOnda P, intervalo PR (0.16 s), complejo QRS (0.08 s) y segmento ST isoeléctrico sin alteraciones agudas de repolarización.',
+        conclusion: 'Electrocardiograma de 12 derivaciones dentro de límites normales.'
+      },
+      'Nota Operatoria de Cirugía Menor / Curación': {
+        findings: 'Previa asepsia y antisepsia con povidona yodada y colocación de campos estériles.\nInfiltración anestésica local con Lidocaína al 2%.\nSe realiza limpieza quirúrgica, hemostasia y afrontamiento de bordes con puntos simples de Nylon 3-0 sin complicaciones.',
+        conclusion: 'Procedimiento quirúrgico menor realizado con éxito. Paciente tolera adecuadamente.'
+      }
+    };
+
+    const LAB_AREAS = {
+      'Hematología': ['Hemograma completo + Plaquetas', 'Grupo Sanguíneo y Factor Rh', 'VSG', 'TP / INR'],
+      'Química Sanguínea': ['Glicemia en ayunas', 'HbA1c', 'Urea y Creatinina', 'Perfil Lipídico', 'Transaminasas (TGO/TGP)'],
+      'Orina y Serología': ['Examen General de Orina (EGO)', 'Urocultivo', 'Coproparasitológico', 'Beta-HCG', 'VIH y RPR (VDRL)', 'TSH y T4 libre']
+    };
+
+    const IMG_AREAS = {
+      'Ecografías': ['Ecografía Abdominal', 'Ecografía Renal/Vías Urinarias', 'Ecografía Obstétrica', 'Ecografía Ginecológica', 'Ecografía Tiroidea'],
+      'Rayos X y Otros': ['Rx de Tórax PA', 'Rx Columna Lumbosacra', 'Rx Extremidades', 'Electrocardiograma (ECG)', 'Tomografía (TAC)']
+    };
+
+    let doctorProfile = { ...DEFAULT_DOCTOR };
+    let vademecumList = [];
+    let recordsDB = [];
+    let waitlistDB = [];
+    let inventoryDB = [];
+    let currentRx = [];
+    let editingRxIdx = null;
+    let currentRecordId = null;
+    let consultMode = 'Primera Consulta';
+    let bodyMarkers = [];
+    let selectedMarkerType = 'Dolor';
+    let selectedMarkerColor = '#ef4444';
+    let odontoState = {};
+
+    // =========================================================================
+    // INICIALIZACIÓN
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      loadDatabase();
+      resetDateTimeInputs();
+      renderDoctorUI();
+      renderVademecumOptions();
+      renderLabAndImgCheckboxes();
+      renderRxActiveList();
+      renderWaitlist();
+      renderInventory();
+      renderOdontogram();
+      renderPAIVaccines();
+      loadEcoTemplate();
+      generateCertText();
+      generateConsentText();
+      initSignaturePad();
+      syncAllViews();
+    });
+
+    function loadDatabase() {
+      try {
+        const d = localStorage.getItem(KEYS.DOCTOR);
+        if (d) doctorProfile = { ...DEFAULT_DOCTOR, ...JSON.parse(d) };
+
+        const v = localStorage.getItem(KEYS.VADEMECUM);
+        vademecumList = v ? JSON.parse(v) : [...DEFAULT_VADEMECUM];
+
+        const r = localStorage.getItem(KEYS.RECORDS);
+        if (r) {
+          recordsDB = JSON.parse(r);
+        } else {
+          const today = new Date().toISOString().split('T')[0];
+          const prev = new Date(Date.now() - 20 * 86400000).toISOString().split('T')[0];
+          recordsDB = [
+            {
+              id: 's1', consultType: 'Primera Consulta', date: prev, time: '09:30', specialty: 'cardio',
+              patient: { name: 'Carlos Alberto Mamani', ci: '4829104 LP', ageYears: '54', sex: 'Masculino', phone: '71589420', allergies: 'Penicilina' },
+              vitals: { pas: '150', pad: '95', hr: '82', temp: '36.5', weight: '84', height: '169' },
+              clinical: { reason: 'Cefalea occipital', exam: 'PA elevada, ruidos cardíacos rítmicos.', diagnosis: 'Hipertensión arterial esencial', cie10: 'I10' },
+              rx: [{ name: 'Losartán Potásico', conc: '50 mg', form: 'Comprimidos', qty: '30', dose: '1 comp.', route: 'Vía Oral', freq: 'Cada 24h', manner: '' }],
+              payment: { amount: 120, concept: 'Consulta Médica', method: 'Efectivo' }
+            },
+            {
+              id: 's2', consultType: 'Nota de Evolución (SOAP)', date: today, time: '10:15', specialty: 'cardio',
+              patient: { name: 'Carlos Alberto Mamani', ci: '4829104 LP', ageYears: '54', sex: 'Masculino', phone: '71589420', allergies: 'Penicilina' },
+              vitals: { pas: '132', pad: '82', hr: '76', temp: '36.6', weight: '81.5', height: '169' },
+              clinical: { reason: 'Control de presión arterial', exam: 'Asintomático, buena adherencia.', diagnosis: 'Hipertensión arterial esencial', cie10: 'I10' },
+              rx: [{ name: 'Losartán Potásico', conc: '50 mg', form: 'Comprimidos', qty: '30', dose: '1 comp.', route: 'Vía Oral', freq: 'Cada 24h', manner: '' }],
+              payment: { amount: 80, concept: 'Control / Reconsulta', method: 'Pago QR / Transferencia' }
+            }
+          ];
+          localStorage.setItem(KEYS.RECORDS, JSON.stringify(recordsDB));
+        }
+
+        const w = localStorage.getItem(KEYS.WAITLIST);
+        waitlistDB = w ? JSON.parse(w) : [];
+
+        const inv = localStorage.getItem(KEYS.INVENTORY);
+        inventoryDB = inv ? JSON.parse(inv) : [...DEFAULT_INVENTORY];
+      } catch (e) { console.error(e); }
+      fillConfigInputs();
+    }
+
+    function resetDateTimeInputs() {
+      const now = new Date();
+      document.getElementById('consult-date').value = now.toISOString().split('T')[0];
+      document.getElementById('consult-time').value = now.toTimeString().slice(0, 5);
+    }
+
+    function renderDoctorUI() {
+      document.getElementById('hdr-clinic-name').textContent = doctorProfile.clinic;
+      document.getElementById('hdr-doc-name').textContent = doctorProfile.name;
+      document.getElementById('hdr-doc-sub').textContent = `${doctorProfile.specialty} • ${doctorProfile.reg}`;
+      document.getElementById('prev-rx-doc').textContent = doctorProfile.name;
+      document.getElementById('prev-rx-spec').textContent = `${doctorProfile.specialty} • ${doctorProfile.reg}`;
+      document.getElementById('badge-records').textContent = recordsDB.length;
+
+      const sigImg = document.getElementById('sig-preview-img');
+      const sigTxt = document.getElementById('sig-empty-txt');
+      if (doctorProfile.signatureDataUrl) {
+        sigImg.src = doctorProfile.signatureDataUrl;
+        sigImg.classList.remove('hidden');
+        sigTxt.classList.add('hidden');
+      } else {
+        sigImg.classList.add('hidden');
+        sigTxt.classList.remove('hidden');
+      }
+    }
+
+    function fillConfigInputs() {
+      document.getElementById('cfg-clinic').value = doctorProfile.clinic || '';
+      document.getElementById('cfg-name').value = doctorProfile.name || '';
+      document.getElementById('cfg-spec').value = doctorProfile.specialty || '';
+      document.getElementById('cfg-reg').value = doctorProfile.reg || '';
+      document.getElementById('cfg-phone').value = doctorProfile.phone || '';
+      document.getElementById('cfg-pin').value = doctorProfile.pin || '1234';
+      document.getElementById('cfg-addr').value = doctorProfile.address || '';
+    }
+
+    // =========================================================================
+    // BLOQUEO POR PIN DE PRIVACIDAD
+    // =========================================================================
+    function lockScreen() {
+      document.getElementById('lock-doc-label').textContent = `${doctorProfile.clinic} • ${doctorProfile.name}`;
+      document.getElementById('pin-unlock-input').value = '';
+      document.getElementById('pin-error-msg').textContent = '';
+      document.getElementById('pin-lock-screen').classList.remove('hidden');
+    }
+
+    function pressPinKey(digit) {
+      const inp = document.getElementById('pin-unlock-input');
+      if (inp.value.length < 4) {
+        inp.value += digit;
+        if (inp.value.length === 4) verifyPinUnlock();
+      }
+    }
+
+    function clearPinInput() {
+      document.getElementById('pin-unlock-input').value = '';
+      document.getElementById('pin-error-msg').textContent = '';
+    }
+
+    function verifyPinUnlock() {
+      const entered = document.getElementById('pin-unlock-input').value;
+      if (entered === (doctorProfile.pin || '1234')) {
+        document.getElementById('pin-lock-screen').classList.add('hidden');
+        showToast('Sesión desbloqueada.');
+      } else {
+        document.getElementById('pin-error-msg').textContent = 'PIN incorrecto. Intente nuevamente.';
+        document.getElementById('pin-unlock-input').value = '';
+      }
+    }
+
+    // =========================================================================
+    // NAVEGACIÓN ENTRE PESTAÑAS
+    // =========================================================================
+    function switchMainView(view) {
+      document.querySelectorAll('.main-view').forEach(v => v.classList.add('hidden'));
+      document.getElementById(`view-${view}`).classList.remove('hidden');
+
+      document.querySelectorAll('.mview-btn').forEach(b => {
+        if (b.dataset.mview === view) {
+          b.className = 'mview-btn px-3.5 py-2 rounded-xl text-xs font-extrabold bg-clinical-600 text-white shadow-xs whitespace-nowrap cursor-pointer';
+        } else {
+          b.className = 'mview-btn px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-white hover:text-slate-900 whitespace-nowrap cursor-pointer';
+        }
+      });
+
+      if (view === 'historial') { renderSNISStats(); renderExpedientesView(); }
+      if (view === 'caja') { renderInventory(); renderCajaAndLedger(); }
+      if (view === 'recepcion') renderWaitlist();
+    }
+
+    function switchRightTab(tab) {
+      document.querySelectorAll('.rpanel').forEach(p => p.classList.add('hidden'));
+      document.getElementById(`rpanel-${tab}`).classList.remove('hidden');
+
+      document.querySelectorAll('.rtab-btn').forEach(b => {
+        b.className = b.dataset.rtab === tab
+          ? 'rtab-btn px-3 py-2 rounded-xl text-xs font-extrabold bg-clinical-600 text-white whitespace-nowrap cursor-pointer'
+          : 'rtab-btn px-3 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 whitespace-nowrap cursor-pointer';
+      });
+
+      if (tab === 'cert') generateCertText();
+      if (tab === 'ref') syncReferenceFromHistory();
+      if (tab === 'consent') generateConsentText();
+    }
+
+    function setConsultMode(mode) {
+      consultMode = mode;
+      document.getElementById('bar-consult-type').textContent = mode;
+      const soapFields = document.getElementById('soap-extra-fields');
+      if (mode === 'Nota de Evolución (SOAP)') {
+        document.getElementById('btn-mode-soap').className = 'px-3 py-1 text-xs font-bold rounded-lg bg-indigo-600 text-white shadow-xs cursor-pointer';
+        document.getElementById('btn-mode-first').className = 'px-3 py-1 text-xs font-semibold rounded-lg text-slate-600 cursor-pointer';
+        document.getElementById('lbl-reason').textContent = 'S — Subjetivo (Evolución del paciente) *';
+        document.getElementById('lbl-exam').textContent = 'O — Objetivo (Examen físico de control)';
+        soapFields.classList.remove('hidden'); soapFields.classList.add('grid');
+      } else {
+        document.getElementById('btn-mode-first').className = 'px-3 py-1 text-xs font-bold rounded-lg bg-white text-clinical-700 shadow-xs cursor-pointer';
+        document.getElementById('btn-mode-soap').className = 'px-3 py-1 text-xs font-semibold rounded-lg text-slate-600 cursor-pointer';
+        document.getElementById('lbl-reason').textContent = 'Motivo de Consulta *';
+        document.getElementById('lbl-exam').textContent = 'Enfermedad Actual y Examen Físico';
+        soapFields.classList.add('hidden'); soapFields.classList.remove('grid');
+      }
+    }
+
+    // =========================================================================
+    // MAPA CORPORAL INTERACTIVO (SVG FRONTAL Y POSTERIOR)
+    // =========================================================================
+    function selectBodyMarkerType(btn) {
+      selectedMarkerType = btn.dataset.mtype;
+      selectedMarkerColor = btn.dataset.mcolor;
+      document.querySelectorAll('.bmarker-btn').forEach(b => {
+        b.className = 'bmarker-btn px-2.5 py-1 rounded-lg font-semibold bg-white border border-slate-300 text-slate-700 cursor-pointer';
+      });
+      btn.style.backgroundColor = selectedMarkerColor;
+      btn.className = 'bmarker-btn px-2.5 py-1 rounded-lg font-bold text-white cursor-pointer';
+    }
+
+    function handleBodyMapClick(e) {
+      const svg = document.getElementById('body-map-svg');
+      const rect = svg.getBoundingClientRect();
+      const x = Math.round(((e.clientX - rect.left) / rect.width) * 320);
+      const y = Math.round(((e.clientY - rect.top) / rect.height) * 260);
+      const side = x < 160 ? 'Anterior' : 'Posterior';
+
+      bodyMarkers.push({
+        id: Date.now(),
+        num: bodyMarkers.length + 1,
+        x, y,
+        side,
+        type: selectedMarkerType,
+        color: selectedMarkerColor,
+        note: ''
+      });
+      renderBodyMarkers();
+    }
+
+    function renderBodyMarkers() {
+      const layer = document.getElementById('body-markers-layer');
+      const list = document.getElementById('body-markers-list');
+
+      layer.innerHTML = bodyMarkers.map((m, i) => `
+        <g>
+          <circle cx="${m.x}" cy="${m.y}" r="7.5" fill="${m.color}" stroke="#ffffff" stroke-width="1.5" />
+          <text x="${m.x}" y="${m.y + 3}" font-size="8" font-weight="bold" fill="#ffffff" text-anchor="middle">${i + 1}</text>
+        </g>
+      `).join('');
+
+      if (bodyMarkers.length === 0) {
+        list.innerHTML = '<p class="text-xs text-slate-400 italic py-6 text-center bg-white rounded-xl border border-dashed border-slate-200">Haga clic en el esquema corporal para registrar puntos anatómicos.</p>';
+        return;
+      }
+
+      list.innerHTML = bodyMarkers.map((m, i) => `
+        <div class="p-2 bg-white border border-slate-200 rounded-xl text-xs space-y-1">
+          <div class="flex justify-between items-center">
+            <span class="font-bold" style="color:${m.color}">#${i + 1} ${escapeHTML(m.type)} (${m.side})</span>
+            <button type="button" onclick="removeBodyMarker(${i})" class="text-[10px] text-rose-600 font-bold cursor-pointer">Quitar</button>
+          </div>
+          <input type="text" value="${escapeHTML(m.note)}" oninput="bodyMarkers[${i}].note = this.value" placeholder="Ej. Equimosis 4x3 cm / Dolor palpación..." class="w-full px-2 py-1 text-[11px] border border-slate-200 rounded-lg" />
+        </div>
+      `).join('');
+    }
+
+    function removeBodyMarker(idx) {
+      bodyMarkers.splice(idx, 1);
+      renderBodyMarkers();
+    }
+
+    function clearBodyMarkers() {
+      bodyMarkers = [];
+      renderBodyMarkers();
+    }
+
+    // =========================================================================
+    // PESTAÑA 2: RECEPCIÓN / TRIAJE (COLA DE ESPERA)
+    // =========================================================================
+    function addToWaitlist() {
+      const name = document.getElementById('rec-name').value.trim();
+      if (!name) { showToast('Ingrese el nombre del paciente.', 'error'); return; }
+
+      waitlistDB.push({
+        id: 'w_' + Date.now(),
+        arrivedAt: new Date().toTimeString().slice(0, 5),
+        name,
+        ci: document.getElementById('rec-ci').value.trim(),
+        age: document.getElementById('rec-age').value,
+        sex: document.getElementById('rec-sex').value,
+        phone: document.getElementById('rec-phone').value.trim(),
+        reason: document.getElementById('rec-reason').value.trim(),
+        vitals: {
+          pas: document.getElementById('rec-pas').value,
+          pad: document.getElementById('rec-pad').value,
+          hr: document.getElementById('rec-hr').value,
+          rr: document.getElementById('rec-rr').value,
+          temp: document.getElementById('rec-temp').value,
+          spo2: document.getElementById('rec-spo2').value,
+          weight: document.getElementById('rec-weight').value,
+          height: document.getElementById('rec-height').value
+        }
+      });
+
+      localStorage.setItem(KEYS.WAITLIST, JSON.stringify(waitlistDB));
+      ['rec-name', 'rec-ci', 'rec-age', 'rec-phone', 'rec-reason', 'rec-pas', 'rec-pad', 'rec-hr', 'rec-rr', 'rec-temp', 'rec-spo2', 'rec-weight', 'rec-height'].forEach(id => document.getElementById(id).value = '');
+      renderWaitlist();
+      showToast('Paciente agregado a la sala de espera.');
+    }
+
+    function renderWaitlist() {
+      document.getElementById('badge-waitlist').textContent = waitlistDB.length;
+      const box = document.getElementById('waitlist-container');
+      if (waitlistDB.length === 0) {
+        box.innerHTML = '<p class="text-center py-8 text-xs text-slate-400">No hay pacientes en sala de espera.</p>';
+        return;
+      }
+      box.innerHTML = waitlistDB.map((w, idx) => `
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 bg-clinical-100 text-clinical-800 rounded text-[11px] font-bold">Turno #${idx + 1} • ${w.arrivedAt}</span>
+              <strong class="text-sm text-slate-900">${escapeHTML(w.name)}</strong>
+              <span class="text-xs text-slate-500">(${w.age || '--'}a, ${w.sex})</span>
+            </div>
+            <p class="text-xs text-slate-600 mt-1"><strong>Motivo:</strong> ${escapeHTML(w.reason || '--')} • <strong>Triaje:</strong> PA ${w.vitals.pas || '--'}/${w.vitals.pad || '--'}, Temp ${w.vitals.temp || '--'}°C, Peso ${w.vitals.weight || '--'}kg</p>
+          </div>
+          <div class="flex gap-2">
+            <button type="button" onclick="attendFromWaitlist('${w.id}')" class="px-3.5 py-2 text-xs font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl cursor-pointer">
+              Atender en Consulta →
+            </button>
+            <button type="button" onclick="removeFromWaitlist('${w.id}')" class="px-2.5 py-2 text-xs font-bold text-rose-700 bg-rose-50 rounded-xl cursor-pointer">Quitar</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function attendFromWaitlist(id) {
+      const w = waitlistDB.find(x => x.id === id);
+      if (!w) return;
+      startNewConsultation();
+      document.getElementById('pt-name').value = w.name;
+      document.getElementById('pt-ci').value = w.ci;
+      document.getElementById('pt-age-years').value = w.age;
+      document.getElementById('pt-sex').value = w.sex;
+      document.getElementById('pt-phone').value = w.phone;
+      document.getElementById('hc-reason').value = w.reason;
+
+      document.getElementById('vs-pas').value = w.vitals.pas;
+      document.getElementById('vs-pad').value = w.vitals.pad;
+      document.getElementById('vs-hr').value = w.vitals.hr;
+      document.getElementById('vs-rr').value = w.vitals.rr;
+      document.getElementById('vs-temp').value = w.vitals.temp;
+      document.getElementById('vs-spo2').value = w.vitals.spo2;
+      document.getElementById('vs-weight').value = w.vitals.weight;
+      document.getElementById('vs-height').value = w.vitals.height;
+
+      removeFromWaitlist(id);
+      calculateIMC();
+      syncAllViews();
+      switchMainView('consulta');
+      showToast(`Triaje de ${w.name} cargado en la Historia Clínica.`);
+    }
+
+    function removeFromWaitlist(id) {
+      waitlistDB = waitlistDB.filter(x => x.id !== id);
+      localStorage.setItem(KEYS.WAITLIST, JSON.stringify(waitlistDB));
+      renderWaitlist();
+    }
+
+    // =========================================================================
+    // PESTAÑA 3: ECOGRAFÍA Y PROCEDIMIENTOS
+    // =========================================================================
+    function loadEcoTemplate() {
+      const tplName = document.getElementById('eco-template-select').value;
+      const tpl = ECO_TEMPLATES[tplName];
+      if (!tpl) return;
+      document.getElementById('eco-findings').value = tpl.findings;
+      document.getElementById('eco-conclusion').value = tpl.conclusion;
+    }
+
+    // =========================================================================
+    // PESTAÑA 4: ODONTOGRAMA Y ESQUEMA VACUNACIÓN PAI
+    // =========================================================================
+    function renderOdontogram() {
+      const upperTeeth = [18, 17, 16, 15, 14, 13, 12, 11, 21, 22, 23, 24, 25, 26, 27, 28];
+      const lowerTeeth = [48, 47, 46, 45, 44, 43, 42, 41, 31, 32, 33, 34, 35, 36, 37, 38];
+      const states = [
+        { code: 'sano', bg: 'bg-white border-slate-300 text-slate-800', label: 'Sano' },
+        { code: 'caries', bg: 'bg-rose-600 border-rose-700 text-white', label: 'Caries' },
+        { code: 'rest', bg: 'bg-clinical-600 border-clinical-700 text-white', label: 'Restaurado' },
+        { code: 'endo', bg: 'bg-amber-500 border-amber-600 text-white', label: 'Endodoncia' },
+        { code: 'aus', bg: 'bg-slate-700 border-slate-900 text-slate-300 line-through', label: 'Ausente' }
+      ];
+
+      const renderRow = arr => arr.map(num => {
+        const stIdx = odontoState[num] || 0;
+        const st = states[stIdx];
+        return `<button type="button" onclick="cycleTooth(${num})" class="w-9 h-11 rounded-lg border-2 ${st.bg} flex flex-col items-center justify-center text-[10px] font-extrabold cursor-pointer transition"><span>${num}</span><span class="text-[8px] font-normal">${st.label.slice(0, 4)}</span></button>`;
+      }).join('');
+
+      document.getElementById('odonto-upper').innerHTML = renderRow(upperTeeth);
+      document.getElementById('odonto-lower').innerHTML = renderRow(lowerTeeth);
+
+      const findings = Object.entries(odontoState)
+        .filter(([_, v]) => v > 0)
+        .map(([k, v]) => `Pieza ${k}: ${states[v].label}`);
+      document.getElementById('odonto-summary').textContent = findings.length ? `Hallazgos odontológicos: ${findings.join(' | ')}` : 'Todas las piezas dentales marcadas como sanas.';
+    }
+
+    function cycleTooth(num) {
+      odontoState[num] = ((odontoState[num] || 0) + 1) % 5;
+      renderOdontogram();
+    }
+
+    function resetOdontogram() {
+      odontoState = {};
+      renderOdontogram();
+    }
+
+    function renderPAIVaccines() {
+      const tbody = document.getElementById('pai-vaccines-tbody');
+      tbody.innerHTML = PAI_VACCINES.map((v, i) => `
+        <tr>
+          <td class="p-2"><input type="checkbox" id="pai-chk-${i}" class="w-4 h-4 text-emerald-600 rounded"></td>
+          <td class="p-2 font-semibold text-slate-800">${escapeHTML(v.name)}</td>
+          <td class="p-2"><input type="date" id="pai-date-${i}" onchange="calcPAIBooster(${i}, ${v.boosterMonths})" class="px-2 py-1 border border-slate-300 rounded text-xs"></td>
+          <td class="p-2 font-bold text-emerald-700" id="pai-next-${i}">${v.boosterMonths === 0 ? 'Dosis única' : '--'}</td>
+        </tr>
+      `).join('');
+    }
+
+    function calcPAIBooster(idx, months) {
+      const val = document.getElementById(`pai-date-${idx}`).value;
+      const out = document.getElementById(`pai-next-${idx}`);
+      if (!val || months === 0) return;
+      document.getElementById(`pai-chk-${idx}`).checked = true;
+      const d = new Date(val + 'T12:00:00');
+      d.setMonth(d.getMonth() + months);
+      out.textContent = d.toISOString().split('T')[0].split('-').reverse().join('/');
+    }
+
+    // =========================================================================
+    // PESTAÑA 5: ESTADÍSTICAS EPIDEMIOLÓGICAS SNIS Y EXPEDIENTES
+    // =========================================================================
+    function renderSNISStats() {
+      const diagMap = new Map();
+      let gUnder5 = 0, g5to14 = 0, g15to49 = 0, g50plus = 0, fem = 0, masc = 0;
+
+      recordsDB.forEach(r => {
+        const key = `${r.clinical.cie10 || 'S/C'}|${r.clinical.diagnosis || 'Sin diagnóstico'}`;
+        diagMap.set(key, (diagMap.get(key) || 0) + 1);
+
+        const age = parseInt(r.patient.ageYears, 10);
+        if (!isNaN(age)) {
+          if (age < 5) gUnder5++;
+          else if (age <= 14) g5to14++;
+          else if (age <= 49) g15to49++;
+          else g50plus++;
+        }
+        if (r.patient.sex === 'Femenino') fem++;
+        else masc++;
+      });
+
+      const sorted = Array.from(diagMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 10);
+      const total = recordsDB.length || 1;
+
+      document.getElementById('snis-top10-tbody').innerHTML = sorted.map(([k, count], i) => {
+        const [cie, desc] = k.split('|');
+        const pct = ((count / total) * 100).toFixed(1);
+        return `<tr><td class="p-2 font-bold">${i + 1}</td><td class="p-2 font-extrabold text-clinical-700">${escapeHTML(cie)}</td><td class="p-2">${escapeHTML(desc)}</td><td class="p-2 text-right font-bold">${count}</td><td class="p-2 text-right text-slate-500">${pct}%</td></tr>`;
+      }).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">Sin datos epidemiológicos aún.</td></tr>';
+
+      document.getElementById('snis-demographics-box').innerHTML = `
+        <div class="flex justify-between"><span>Menores de 5 años:</span><strong>${gUnder5}</strong></div>
+        <div class="flex justify-between"><span>De 5 a 14 años:</span><strong>${g5to14}</strong></div>
+        <div class="flex justify-between"><span>De 15 a 49 años:</span><strong>${g15to49}</strong></div>
+        <div class="flex justify-between"><span>De 50 años y más:</span><strong>${g50plus}</strong></div>
+        <hr class="border-slate-200 my-1">
+        <div class="flex justify-between text-pink-700"><span>Sexo Femenino:</span><strong>${fem}</strong></div>
+        <div class="flex justify-between text-sky-700"><span>Sexo Masculino:</span><strong>${masc}</strong></div>
+      `;
+    }
+
+    function exportEpidemiologyCSV() {
+      const rows = ['"Fecha";"Paciente";"Edad";"Sexo";"CIE-10";"Diagnostico";"Violencia"'];
+      recordsDB.forEach(r => {
+        rows.push(`"${r.date}";"${r.patient.name}";"${r.patient.ageYears || ''}";"${r.patient.sex}";"${r.clinical.cie10 || ''}";"${r.clinical.diagnosis || ''}";"${r.patient.violenceCheck ? 'SI' : 'NO'}"`);
+      });
+      downloadCSVFile(rows.join('\r\n'), `Reporte_Epidemiologico_SNIS_${new Date().toISOString().split('T')[0]}.csv`);
+    }
+
+    function renderExpedientesView() {
+      const q = (document.getElementById('exp-search-input').value || '').toLowerCase().trim();
+      const map = new Map();
+      recordsDB.forEach(r => {
+        const key = (r.patient.ci || r.patient.name).trim().toUpperCase();
+        if (!map.has(key)) map.set(key, { key, patient: r.patient, visits: [] });
+        map.get(key).visits.push(r);
+      });
+
+      const list = Array.from(map.values()).filter(g => g.patient.name.toLowerCase().includes(q) || (g.patient.ci || '').toLowerCase().includes(q));
+      document.getElementById('expedientes-grouped-list').innerHTML = list.map(g => `
+        <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div>
+            <strong class="text-sm text-slate-900">${escapeHTML(g.patient.name)}</strong> (CI: ${escapeHTML(g.patient.ci || '--')}) — <span class="font-bold text-indigo-700">${g.visits.length} consulta(s)</span>
+            <p class="text-slate-500 mt-0.5">Último Dx: ${escapeHTML(g.visits[0].clinical.diagnosis || '--')}</p>
+          </div>
+          <button type="button" onclick="printExpedienteByKey('${escapeHTML(g.key)}')" class="px-3 py-1.5 font-bold text-white bg-indigo-600 rounded-xl cursor-pointer">Imprimir / PDF Expediente Completo</button>
+        </div>
+      `).join('') || '<p class="text-xs text-slate-400">No hay expedientes.</p>';
+    }
+
+    function printExpedienteByKey(key) {
+      const visits = recordsDB.filter(r => (r.patient.ci || r.patient.name).trim().toUpperCase() === key).reverse();
+      if (!visits.length) return;
+      const pt = visits[0].patient;
+      document.body.className = 'print-exp';
+      document.getElementById('pexp-doc').textContent = `${doctorProfile.clinic} • ${doctorProfile.name}`;
+      document.getElementById('pexp-date').textContent = new Date().toLocaleDateString('es-BO');
+      document.getElementById('pexp-pt').textContent = `${pt.name} (CI: ${pt.ci || '--'})`;
+      document.getElementById('pexp-list').innerHTML = visits.map((v, i) => `
+        <div class="border border-slate-300 p-2.5 rounded">
+          <p class="font-bold bg-slate-100 p-1">#${i + 1} Fecha: ${v.date} — Dx: ${escapeHTML(v.clinical.diagnosis || '--')}</p>
+          <p class="mt-1"><strong>Signos:</strong> PA ${v.vitals.pas || '--'}/${v.vitals.pad || '--'}, Peso ${v.vitals.weight || '--'} kg</p>
+          <p><strong>Nota:</strong> ${escapeHTML(v.clinical.exam || '--')}</p>
+        </div>
+      `).join('');
+      window.print();
+    }
+
+    // =========================================================================
+    // PESTAÑA 6: BOTIQUÍN / INSUMOS Y CAJA DIARIA
+    // =========================================================================
+    function renderInventory() {
+      let lowCount = 0;
+      const grid = document.getElementById('inventory-grid');
+      grid.innerHTML = inventoryDB.map((item, idx) => {
+        const isLow = item.stock <= item.min;
+        if (isLow) lowCount++;
+        return `
+          <div class="p-3 rounded-xl border ${isLow ? 'bg-rose-50 border-rose-300' : 'bg-slate-50 border-slate-200'} flex flex-col justify-between gap-2">
+            <div>
+              <p class="font-bold text-slate-900">${escapeHTML(item.name)}</p>
+              <p class="text-[11px] ${isLow ? 'text-rose-700 font-extrabold' : 'text-slate-500'}">Stock: ${item.stock} unid. ${isLow ? '(⚠ REPONER)' : ''}</p>
+            </div>
+            <div class="flex gap-1.5">
+              <button type="button" onclick="adjustStock(${idx}, -1)" class="flex-1 py-1 bg-white border border-slate-300 hover:bg-rose-100 font-bold rounded-lg cursor-pointer">-1 Usar</button>
+              <button type="button" onclick="adjustStock(${idx}, 5)" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-emerald-100 font-bold rounded-lg cursor-pointer">+5</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      document.getElementById('badge-low-stock').textContent = lowCount;
+    }
+
+    function adjustStock(idx, delta) {
+      inventoryDB[idx].stock = Math.max(0, inventoryDB[idx].stock + delta);
+      localStorage.setItem(KEYS.INVENTORY, JSON.stringify(inventoryDB));
+      renderInventory();
+    }
+
+    function addInventoryItem() {
+      const name = document.getElementById('inv-new-name').value.trim();
+      const stock = parseInt(document.getElementById('inv-new-qty').value, 10) || 0;
+      if (!name) return;
+      inventoryDB.push({ id: 'inv_' + Date.now(), name, stock, min: 5 });
+      localStorage.setItem(KEYS.INVENTORY, JSON.stringify(inventoryDB));
+      document.getElementById('inv-new-name').value = '';
+      document.getElementById('inv-new-qty').value = '';
+      renderInventory();
+      showToast('Insumo añadido al botiquín.');
+    }
+
+    function renderCajaAndLedger() {
+      let tot = 0, cash = 0, qr = 0;
+      const tbody = document.getElementById('ledger-table-body');
+      tbody.innerHTML = recordsDB.map(r => {
+        const amt = parseFloat(r.payment?.amount) || 0;
+        tot += amt;
+        if (r.payment?.method === 'Efectivo') cash += amt;
+        else if (r.payment?.method === 'Pago QR / Transferencia') qr += amt;
+        return `<tr><td class="p-2.5">${r.date}</td><td class="p-2.5 font-bold">${escapeHTML(r.patient.name)}</td><td class="p-2.5">${escapeHTML(r.clinical.diagnosis || '--')}</td><td class="p-2.5">${escapeHTML(r.payment?.method || 'Efectivo')}</td><td class="p-2.5 text-right font-extrabold text-emerald-700">${amt.toFixed(2)}</td></tr>`;
+      }).join('');
+      document.getElementById('kpi-total-bs').textContent = `${tot.toFixed(2)} Bs.`;
+      document.getElementById('kpi-cash-bs').textContent = `${cash.toFixed(2)} Bs.`;
+      document.getElementById('kpi-qr-bs').textContent = `${qr.toFixed(2)} Bs.`;
+    }
+
+    function exportToExcelCSV() {
+      const rows = ['"Fecha";"Hora";"Paciente";"CI";"Edad";"Sexo";"Especialidad";"Diagnostico";"CIE-10";"Violencia";"Metodo Pago";"Monto Bs"'];
+      recordsDB.forEach(r => {
+        rows.push(`"${r.date}";"${r.time || ''}";"${r.patient.name}";"${r.patient.ci || ''}";"${r.patient.ageYears || ''}";"${r.patient.sex}";"${r.specialty}";"${r.clinical.diagnosis || ''}";"${r.clinical.cie10 || ''}";"${r.patient.violenceCheck ? 'SI' : 'NO'}";"${r.payment?.method || ''}";"${(parseFloat(r.payment?.amount) || 0).toFixed(2)}"`);
+      });
+      downloadCSVFile(rows.join('\r\n'), `Registro_Medico_Caja_${new Date().toISOString().split('T')[0]}.csv`);
+    }
+
+    function downloadCSVFile(content, filename) {
+      const blob = new Blob(['\uFEFF' + content], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; a.click();
+      URL.revokeObjectURL(url);
+      showToast('Archivo Excel (.CSV) exportado correctamente.');
+    }
+
+    // =========================================================================
+    // PESTAÑA 7: FIRMA DIGITAL DIBUJABLE / IMAGEN Y CONFIGURACIÓN
+    // =========================================================================
+    function initSignaturePad() {
+      const canvas = document.getElementById('signature-pad');
+      const ctx = canvas.getContext('2d');
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 2.2;
+      ctx.lineCap = 'round';
+      let drawing = false;
+
+      const getPos = e => {
+        const r = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: ((clientX - r.left) / r.width) * canvas.width, y: ((clientY - r.top) / r.height) * canvas.height };
+      };
+
+      const start = e => { drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); };
+      const move = e => { if (!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
+      const stop = () => { drawing = false; };
+
+      canvas.addEventListener('mousedown', start);
+      canvas.addEventListener('mousemove', move);
+      window.addEventListener('mouseup', stop);
+      canvas.addEventListener('touchstart', start, { passive: false });
+      canvas.addEventListener('touchmove', move, { passive: false });
+      window.addEventListener('touchend', stop);
+    }
+
+    function clearSignaturePad() {
+      const c = document.getElementById('signature-pad');
+      c.getContext('2d').clearRect(0, 0, c.width, c.height);
+    }
+
+    function saveDrawnSignature() {
+      const c = document.getElementById('signature-pad');
+      doctorProfile.signatureDataUrl = c.toDataURL('image/png');
+      localStorage.setItem(KEYS.DOCTOR, JSON.stringify(doctorProfile));
+      renderDoctorUI();
+      showToast('Firma digital dibujada guardada.');
+    }
+
+    function uploadSignatureImage(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        doctorProfile.signatureDataUrl = ev.target.result;
+        localStorage.setItem(KEYS.DOCTOR, JSON.stringify(doctorProfile));
+        renderDoctorUI();
+        showToast('Imagen de firma y sello cargada.');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function saveDoctorConfig() {
+      doctorProfile.clinic = document.getElementById('cfg-clinic').value.trim() || DEFAULT_DOCTOR.clinic;
+      doctorProfile.name = document.getElementById('cfg-name').value.trim() || DEFAULT_DOCTOR.name;
+      doctorProfile.specialty = document.getElementById('cfg-spec').value.trim() || DEFAULT_DOCTOR.specialty;
+      doctorProfile.reg = document.getElementById('cfg-reg').value.trim() || DEFAULT_DOCTOR.reg;
+      doctorProfile.phone = document.getElementById('cfg-phone').value.trim() || DEFAULT_DOCTOR.phone;
+      doctorProfile.pin = document.getElementById('cfg-pin').value.trim() || '1234';
+      doctorProfile.address = document.getElementById('cfg-addr').value.trim() || DEFAULT_DOCTOR.address;
+      localStorage.setItem(KEYS.DOCTOR, JSON.stringify(doctorProfile));
+      renderDoctorUI();
+      showToast('Configuración guardada.');
+    }
+
+    function exportJSONBackup() {
+      const blob = new Blob([JSON.stringify({ doctor: doctorProfile, records: recordsDB, inventory: inventoryDB, vademecum: vademecumList }, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `Respaldo_MediConsultorio360_${new Date().toISOString().split('T')[0]}.json`; a.click();
+      URL.revokeObjectURL(url);
+      showToast('Respaldo .JSON descargado.');
+    }
+
+    function importJSONBackup(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          if (data.doctor) { doctorProfile = data.doctor; localStorage.setItem(KEYS.DOCTOR, JSON.stringify(doctorProfile)); fillConfigInputs(); renderDoctorUI(); }
+          if (data.records) { recordsDB = data.records; localStorage.setItem(KEYS.RECORDS, JSON.stringify(recordsDB)); document.getElementById('badge-records').textContent = recordsDB.length; }
+          if (data.inventory) { inventoryDB = data.inventory; localStorage.setItem(KEYS.INVENTORY, JSON.stringify(inventoryDB)); renderInventory(); }
+          showToast('Respaldo restaurado correctamente.');
+        } catch (err) { showToast('Archivo inválido.', 'error'); }
+      };
+      reader.readAsText(file);
+    }
+
+    // =========================================================================
+    // LÓGICA CLÍNICA, ALERGIAS, RECETA, REFERENCIA, CONSENTIMIENTO E IMPRESIÓN
+    // =========================================================================
+    function handleSmartSearch() {
+      const q = document.getElementById('smart-patient-search').value.toLowerCase().trim();
+      const box = document.getElementById('smart-search-results');
+      if (!q) { box.classList.add('hidden'); return; }
+      const matches = recordsDB.filter(r => r.patient.name.toLowerCase().includes(q) || (r.patient.ci || '').toLowerCase().includes(q));
+      box.innerHTML = matches.slice(0, 6).map(m => `
+        <div class="p-2.5 hover:bg-clinical-50 text-xs cursor-pointer flex justify-between" onclick="loadPatientForEvolution('${m.id}')">
+          <span><strong>${escapeHTML(m.patient.name)}</strong> (CI: ${escapeHTML(m.patient.ci || '--')})</span>
+          <span class="text-clinical-700 font-bold">Cargar Evolución →</span>
+        </div>
+      `).join('') || '<div class="p-2.5 text-xs text-slate-400">Sin coincidencias.</div>';
+      box.classList.remove('hidden');
+    }
+
+    function loadPatientForEvolution(id) {
+      document.getElementById('smart-search-results').classList.add('hidden');
+      const r = recordsDB.find(x => x.id === id);
+      if (!r) return;
+      document.getElementById('pt-name').value = r.patient.name || '';
+      document.getElementById('pt-ci').value = r.patient.ci || '';
+      document.getElementById('pt-age-years').value = r.patient.ageYears || '';
+      document.getElementById('pt-sex').value = r.patient.sex || 'Femenino';
+      document.getElementById('pt-phone').value = r.patient.phone || '';
+      document.getElementById('pt-allergies').value = r.patient.allergies || '';
+      setConsultMode('Nota de Evolución (SOAP)');
+      syncAllViews();
+      checkDrugAllergyLive();
+      showToast(`Datos de ${r.patient.name} cargados para evolución.`);
+    }
+
+    function checkDrugAllergyLive() {
+      const al = document.getElementById('pt-allergies').value.toLowerCase().trim();
+      const dr = document.getElementById('rx-name').value.toLowerCase().trim();
+      const ban = document.getElementById('allergy-warning-banner');
+      if (!al || !dr) { ban.classList.add('hidden'); return; }
+      const tokens = al.split(/[,;/\s]+/).filter(t => t.length >= 3);
+      let hit = false;
+      for (const t of tokens) {
+        if (dr.includes(t)) { hit = true; break; }
+        for (const g of ALLERGY_GROUPS) {
+          if (g.keywords.some(k => t.includes(k)) && g.drugs.some(d => dr.includes(d))) { hit = true; break; }
+        }
+      }
+      if (hit) {
+        document.getElementById('allergy-warning-msg').textContent = `El paciente es alérgico a "${al.toUpperCase()}" y está prescribiendo "${document.getElementById('rx-name').value}".`;
+        ban.classList.remove('hidden');
+      } else ban.classList.add('hidden');
+    }
+
+    function toggleCompanionBox() {
+      const c = document.getElementById('companion-check').checked;
+      const f = document.getElementById('companion-fields');
+      f.classList.toggle('hidden', !c);
+      if (c) f.classList.add('grid');
+    }
+
+    function toggleViolenceBox() {
+      const c = document.getElementById('violence-check').checked;
+      document.getElementById('violence-fields').classList.toggle('hidden', !c);
+      document.getElementById('bar-violence-badge').classList.toggle('hidden', !c);
+    }
+
+    function onSpecialtyChange() {
+      const s = document.getElementById('specialty-selector');
+      document.getElementById('active-spec-pill').textContent = s.options[s.selectedIndex].text;
+      document.querySelectorAll('.spec-panel').forEach(p => p.classList.add('hidden'));
+      if (document.getElementById(`spec-panel-${s.value}`)) document.getElementById(`spec-panel-${s.value}`).classList.remove('hidden');
+    }
+
+    function calculateIMC() {
+      const w = parseFloat(document.getElementById('vs-weight').value);
+      const h = parseFloat(document.getElementById('vs-height').value);
+      const el = document.getElementById('imc-badge');
+      if (w > 0 && h > 0) {
+        const imc = (w / ((h / 100) ** 2)).toFixed(1);
+        el.textContent = `IMC: ${imc} kg/m²`;
+      } else el.textContent = 'IMC: -- kg/m²';
+    }
+
+    function toggleGestograma() {
+      document.getElementById('gestograma-box').classList.toggle('hidden', !document.getElementById('gine-pregnant').checked);
+    }
+
+    function calculateGestograma(src) {
+      const fumEl = document.getElementById('gine-fum');
+      const fppEl = document.getElementById('gine-fpp');
+      const refDate = new Date((document.getElementById('consult-date').value || new Date().toISOString().split('T')[0]) + 'T12:00:00');
+      let fum = null;
+      if (src === 'fum' && fumEl.value) {
+        fum = new Date(fumEl.value + 'T12:00:00');
+        fppEl.value = new Date(fum.getTime() + 280 * 86400000).toISOString().split('T')[0];
+      } else if (src === 'fpp' && fppEl.value) {
+        fum = new Date(new Date(fppEl.value + 'T12:00:00').getTime() - 280 * 86400000);
+        fumEl.value = fum.toISOString().split('T')[0];
+      }
+      if (!fum || isNaN(fum)) return;
+      const days = Math.floor((refDate - fum) / 86400000);
+      if (days < 0) return;
+      const w = Math.floor(days / 7), d = days % 7;
+      document.getElementById('gine-eg').value = `${w} semanas + ${d} días`;
+      document.getElementById('gesto-bar').style.width = `${Math.min(100, (w / 42) * 100)}%`;
+      document.getElementById('gesto-trimestre-badge').textContent = w <= 13 ? '1er Trimestre' : (w <= 27 ? '2do Trimestre' : '3er Trimestre');
+      document.getElementById('gesto-hitos-box').textContent = w <= 13 ? 'Suplementar Ácido Fólico y solicitar perfil prenatal.' : (w <= 27 ? 'Suplementar Sulfato Ferroso y Eco Morfológica.' : 'Control de bienestar fetal, PA y signos de alarma.');
+    }
+
+    function calcPediatricDose() {
+      const w = parseFloat(document.getElementById('vs-weight').value);
+      const mg = parseFloat(document.getElementById('ped-mgkg').value);
+      const fr = parseInt(document.getElementById('ped-freq').value, 10);
+      const cmg = parseFloat(document.getElementById('ped-cmg').value);
+      const cml = parseFloat(document.getElementById('ped-cml').value);
+      if (w > 0 && mg > 0 && fr > 0) {
+        const dMg = (w * mg) / fr;
+        document.getElementById('ped-dose-out').textContent = cmg > 0 ? `${dMg.toFixed(0)}mg (${((dMg * cml) / cmg).toFixed(1)}ml)` : `${dMg.toFixed(0)}mg`;
+      }
+    }
+
+    function calcAlvarado() {
+      let pts = 0;
+      document.querySelectorAll('.alv-chk:checked').forEach(c => pts += parseInt(c.dataset.pts, 10));
+      document.getElementById('alvarado-badge').textContent = `${pts} / 10 pts`;
+    }
+
+    function applyQuickCIE10() {
+      const v = document.getElementById('cie10-quick-select').value;
+      if (!v) return;
+      const [c, d] = v.split('|');
+      document.getElementById('hc-cie10').value = c;
+      document.getElementById('hc-diagnosis').value = d;
+      syncAllViews();
+    }
+
+    function renderVademecumOptions() {
+      const g = document.getElementById('vad-group-filter').value;
+      const sel = document.getElementById('vademecum-select');
+      sel.innerHTML = '<option value="">-- Cargar fármaco rápido --</option>';
+      (g === 'ALL' ? vademecumList : vademecumList.filter(m => m.grp === g)).forEach(m => {
+        const o = document.createElement('option');
+        o.value = m.id; o.textContent = `${m.name} ${m.conc}`;
+        sel.appendChild(o);
+      });
+    }
+
+    function fillDrugFromVademecum() {
+      const m = vademecumList.find(x => x.id === document.getElementById('vademecum-select').value);
+      if (!m) return;
+      document.getElementById('rx-name').value = m.name;
+      document.getElementById('rx-conc').value = m.conc;
+      document.getElementById('rx-form').value = m.form;
+      document.getElementById('rx-qty').value = m.qty;
+      document.getElementById('rx-dose').value = m.dose;
+      document.getElementById('rx-route').value = m.route;
+      document.getElementById('rx-freq').value = m.freq;
+      document.getElementById('rx-manner').value = m.manner;
+      checkDrugAllergyLive();
+    }
+
+    function addOrSaveRxDrug() {
+      const name = document.getElementById('rx-name').value.trim();
+      const dose = document.getElementById('rx-dose').value.trim();
+      const freq = document.getElementById('rx-freq').value.trim();
+      if (!name || !dose || !freq) { showToast('Complete Fármaco, Dosis y Frecuencia.', 'error'); return; }
+      const item = {
+        name, conc: document.getElementById('rx-conc').value.trim(), form: document.getElementById('rx-form').value.trim(),
+        qty: document.getElementById('rx-qty').value.trim(), dose, route: document.getElementById('rx-route').value.trim(),
+        freq, manner: document.getElementById('rx-manner').value.trim()
+      };
+      if (editingRxIdx !== null) { currentRx[editingRxIdx] = item; editingRxIdx = null; document.getElementById('btn-rx-submit').textContent = '+ Agregar a Receta'; }
+      else currentRx.push(item);
+      ['rx-name', 'rx-conc', 'rx-form', 'rx-qty', 'rx-dose', 'rx-freq', 'rx-manner'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('allergy-warning-banner').classList.add('hidden');
+      renderRxActiveList();
+      syncAllViews();
+    }
+
+    function renderRxActiveList() {
+      document.getElementById('r-badge-rx').textContent = currentRx.length;
+      document.getElementById('rx-active-list').innerHTML = currentRx.map((m, i) => `
+        <div class="p-2 bg-slate-50 border border-slate-200 rounded-lg flex justify-between items-center text-xs">
+          <span><strong>${i + 1}. ${escapeHTML(m.name)} ${escapeHTML(m.conc)}</strong> — ${escapeHTML(m.dose)}, ${escapeHTML(m.freq)}</span>
+          <button type="button" onclick="currentRx.splice(${i},1); renderRxActiveList(); syncAllViews();" class="text-rose-600 font-bold px-2 cursor-pointer">X</button>
+        </div>
+      `).join('');
+    }
+
+    function renderLabAndImgCheckboxes() {
+      document.getElementById('lab-checkboxes-grid').innerHTML = Object.entries(LAB_AREAS).map(([a, items]) => `
+        <div class="p-2 bg-slate-50 border border-slate-200 rounded-xl"><p class="font-bold text-emerald-900 mb-1">${a}</p>${items.map(t => `<label class="flex items-center gap-1.5 py-0.5"><input type="checkbox" value="${t}" onchange="updateRightBadges()" class="lab-chk"><span>${t}</span></label>`).join('')}</div>
+      `).join('');
+      document.getElementById('img-checkboxes-grid').innerHTML = Object.entries(IMG_AREAS).map(([a, items]) => `
+        <div class="p-2 bg-slate-50 border border-slate-200 rounded-xl"><p class="font-bold text-indigo-900 mb-1">${a}</p>${items.map(s => `<label class="flex items-center gap-1.5 py-0.5"><input type="checkbox" value="${s}" onchange="updateRightBadges()" class="img-chk"><span>${s}</span></label>`).join('')}</div>
+      `).join('');
+    }
+
+    function updateRightBadges() {
+      document.getElementById('r-badge-lab').textContent = document.querySelectorAll('.lab-chk:checked').length;
+      document.getElementById('r-badge-img').textContent = document.querySelectorAll('.img-chk:checked').length;
+    }
+
+    function generateCertText() {
+      const type = document.getElementById('cert-type').value;
+      const days = document.getElementById('cert-days').value || 3;
+      const pt = document.getElementById('pt-name').value.trim() || '[PACIENTE]';
+      const ci = document.getElementById('pt-ci').value.trim() || '[CI]';
+      const dx = document.getElementById('hc-diagnosis').value.trim() || '[DIAGNÓSTICO]';
+      document.getElementById('cert-text').value = `El suscrito médico cirujano CERTIFICA:\n\nQue el/la paciente ${pt}, con C.I. ${ci}, fue evaluado/a clínicamente presentando diagnóstico de: ${dx}.\n\nSe expide el presente documento (${type}) otorgando ${days} día(s) de reposo/constancia según criterio médico.`;
+    }
+
+    function syncReferenceFromHistory() {
+      const pt = document.getElementById('pt-name').value.trim() || 'Paciente';
+      const age = document.getElementById('pt-age-years').value || '--';
+      const reason = document.getElementById('hc-reason').value.trim() || '--';
+      const exam = document.getElementById('hc-exam').value.trim() || '--';
+      document.getElementById('ref-summary').value = `Paciente ${pt} de ${age} años de edad, acude por: ${reason}. Al examen físico: ${exam}. Se refiere para valoración especializada y manejo complementario.`;
+    }
+
+    function generateConsentText() {
+      const proc = document.getElementById('consent-template').value;
+      const pt = document.getElementById('pt-name').value.trim() || '[NOMBRE DEL PACIENTE]';
+      const ci = document.getElementById('pt-ci').value.trim() || '[CI]';
+      document.getElementById('consent-body').value = `Yo, ${pt}, con C.I. N° ${ci}, declaro haber sido informado/a de manera clara, comprensible y oportuna por el/la ${doctorProfile.name} sobre la naturaleza, beneficios, alternativas y posibles riesgos del procedimiento: "${proc}".\n\nHabiendo aclarado todas mis dudas, otorgo libre y voluntariamente mi CONSENTIMIENTO INFORMADO para la realización de dicho acto médico.`;
+    }
+
+    function syncAllViews() {
+      const pt = document.getElementById('pt-name').value.trim() || 'Nuevo Paciente';
+      const ci = document.getElementById('pt-ci').value.trim() || '--';
+      const y = document.getElementById('pt-age-years').value;
+      const age = y ? `${y} años` : '--';
+      document.getElementById('bar-pt-name').textContent = pt;
+      document.getElementById('bar-pt-ci').textContent = ci;
+      document.getElementById('bar-pt-age').textContent = age;
+      document.getElementById('bar-pt-sex').textContent = document.getElementById('pt-sex').value;
+
+      const al = document.getElementById('pt-allergies').value.trim();
+      const bAl = document.getElementById('bar-allergy-badge');
+      if (al) { document.getElementById('bar-allergy-text').textContent = al; bAl.classList.remove('hidden'); }
+      else bAl.classList.add('hidden');
+
+      document.getElementById('prev-rx-date').textContent = (document.getElementById('consult-date').value || '').split('-').reverse().join('/');
+      document.getElementById('prev-rx-pt').textContent = pt;
+      document.getElementById('prev-rx-ci').textContent = ci;
+      document.getElementById('prev-rx-body').innerHTML = currentRx.map((m, i) => `<p><strong>${i + 1}. ${escapeHTML(m.name)} ${escapeHTML(m.conc)}:</strong> ${escapeHTML(m.dose)}, ${escapeHTML(m.freq)}</p>`).join('') || '<p class="text-slate-400 italic">Sin medicamentos...</p>';
+    }
+
+    function sendWhatsAppReminder() {
+      const phone = document.getElementById('pt-phone').value.replace(/\D/g, '');
+      const pt = document.getElementById('pt-name').value.trim() || 'Paciente';
+      const meds = currentRx.map((m, i) => `${i + 1}. ${m.name} ${m.conc}: ${m.dose} ${m.freq}`).join('\n');
+      const msg = `Hola *${pt}*, le saluda *${doctorProfile.clinic}* (${doctorProfile.name}).\n\n*Indicaciones:*\n${meds || 'Seguimiento clínico según consulta.'}`;
+      window.open(`https://wa.me/${phone.length === 8 ? '591' + phone : phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function saveFullConsultation() {
+      const name = document.getElementById('pt-name').value.trim();
+      if (!name) { showToast('Ingrese el nombre del paciente.', 'error'); return; }
+      const rec = {
+        id: currentRecordId || 'rec_' + Date.now(),
+        consultType: consultMode,
+        date: document.getElementById('consult-date').value,
+        time: document.getElementById('consult-time').value,
+        specialty: document.getElementById('specialty-selector').value,
+        patient: {
+          name, ci: document.getElementById('pt-ci').value.trim(), ageYears: document.getElementById('pt-age-years').value,
+          sex: document.getElementById('pt-sex').value, phone: document.getElementById('pt-phone').value.trim(),
+          allergies: document.getElementById('pt-allergies').value.trim(),
+          violenceCheck: document.getElementById('violence-check').checked
+        },
+        vitals: {
+          pas: document.getElementById('vs-pas').value, pad: document.getElementById('vs-pad').value,
+          hr: document.getElementById('vs-hr').value, temp: document.getElementById('vs-temp').value,
+          weight: document.getElementById('vs-weight').value, height: document.getElementById('vs-height').value
+        },
+        clinical: {
+          reason: document.getElementById('hc-reason').value.trim(),
+          exam: document.getElementById('hc-exam').value.trim(),
+          diagnosis: document.getElementById('hc-diagnosis').value.trim(),
+          cie10: document.getElementById('hc-cie10').value.trim().toUpperCase()
+        },
+        rx: [...currentRx],
+        payment: {
+          amount: parseFloat(document.getElementById('pay-amount').value) || 0,
+          concept: document.getElementById('pay-concept').value,
+          method: document.getElementById('pay-method').value
+        }
+      };
+      recordsDB.unshift(rec);
+      localStorage.setItem(KEYS.RECORDS, JSON.stringify(recordsDB));
+      document.getElementById('badge-records').textContent = recordsDB.length;
+      showToast('Consulta guardada en el registro médico.');
+    }
+
+    function startNewConsultation() {
+      currentRecordId = null;
+      resetDateTimeInputs();
+      setConsultMode('Primera Consulta');
+      ['pt-name', 'pt-ci', 'pt-age-years', 'pt-age-months', 'pt-phone', 'pt-address', 'pt-allergies', 'pt-antecedents', 'vs-pas', 'vs-pad', 'vs-hr', 'vs-rr', 'vs-temp', 'vs-spo2', 'vs-weight', 'vs-height', 'hc-reason', 'hc-exam', 'hc-diagnosis', 'hc-cie10', 'rx-notes'].forEach(id => document.getElementById(id).value = '');
+      currentRx = [];
+      clearBodyMarkers();
+      renderRxActiveList();
+      syncAllViews();
+    }
+
+    // =========================================================================
+    // IMPRESIÓN INDEPENDIENTE CON ESTAMPADO DE FIRMA Y SELLO DIGITAL
+    // =========================================================================
+    function applySignatureToPrintImages() {
+      document.querySelectorAll('[id$="-sig-img"]').forEach(img => {
+        if (doctorProfile.signatureDataUrl) {
+          img.src = doctorProfile.signatureDataUrl;
+          img.classList.remove('hidden');
+        } else {
+          img.classList.add('hidden');
+        }
+      });
+    }
+
+    function printDoc(mode) {
+      applySignatureToPrintImages();
+      const fmtDate = (document.getElementById('consult-date').value || '').split('-').reverse().join('/');
+      const pt = document.getElementById('pt-name').value.trim() || 'Paciente';
+      const ci = document.getElementById('pt-ci').value.trim() || '--';
+      const age = document.getElementById('pt-age-years').value ? `${document.getElementById('pt-age-years').value} años` : '--';
+      const dx = document.getElementById('hc-diagnosis').value.trim() || 'En estudio';
+      const cie = document.getElementById('hc-cie10').value.trim().toUpperCase();
+      const fullDx = cie ? `${dx} (${cie})` : dx;
+
+      document.body.className = `print-${mode}`;
+
+      if (mode === 'hc') {
+        document.getElementById('phc-clinic').textContent = doctorProfile.clinic;
+        document.getElementById('phc-doc').textContent = doctorProfile.name;
+        document.getElementById('phc-sub').textContent = `${doctorProfile.specialty} • ${doctorProfile.reg}`;
+        document.getElementById('phc-date').textContent = fmtDate;
+        document.getElementById('phc-pt').textContent = pt;
+        document.getElementById('phc-ci').textContent = ci;
+        document.getElementById('phc-agesex').textContent = `${age} / ${document.getElementById('pt-sex').value}`;
+        document.getElementById('phc-phone').textContent = document.getElementById('pt-phone').value || '--';
+        document.getElementById('phc-allergies').textContent = document.getElementById('pt-allergies').value || 'Ninguna';
+        document.getElementById('phc-comp').textContent = document.getElementById('companion-check').checked ? `${document.getElementById('comp-relation').value}: ${document.getElementById('comp-name').value}` : 'Acude solo/a';
+
+        const vb = document.getElementById('phc-viol-box');
+        if (document.getElementById('violence-check').checked) {
+          vb.classList.remove('hidden');
+          const vt = Array.from(document.querySelectorAll('.viol-type-chk:checked')).map(c => c.value).join(', ');
+          document.getElementById('phc-viol-text').textContent = `Tipo: ${vt} | Notificación: ${document.getElementById('viol-referral').value}\nLesiones: ${document.getElementById('viol-desc').value}`;
+        } else vb.classList.add('hidden');
+
+        document.getElementById('phc-vitals').textContent = `PA: ${document.getElementById('vs-pas').value || '--'}/${document.getElementById('vs-pad').value || '--'} mmHg | FC: ${document.getElementById('vs-hr').value || '--'} lpm | Temp: ${document.getElementById('vs-temp').value || '--'} °C | Peso: ${document.getElementById('vs-weight').value || '--'} kg`;
+        document.getElementById('phc-reason').textContent = document.getElementById('hc-reason').value || '--';
+        document.getElementById('phc-exam').textContent = document.getElementById('hc-exam').value || '--';
+
+        const bmBox = document.getElementById('phc-bodymap-print');
+        if (bodyMarkers.length > 0) {
+          bmBox.classList.remove('hidden');
+          document.getElementById('phc-bodymap-list').textContent = bodyMarkers.map((m, i) => `#${i + 1} [${m.side}] ${m.type}: ${m.note || 'Marcado'}`).join(' | ');
+        } else bmBox.classList.add('hidden');
+
+        document.getElementById('phc-diag').textContent = fullDx;
+        document.getElementById('phc-rx').innerHTML = currentRx.map((m, i) => `<p><strong>${i + 1}. ${escapeHTML(m.name)} ${escapeHTML(m.conc)}:</strong> ${escapeHTML(m.dose)}, ${escapeHTML(m.freq)}</p>`).join('');
+        document.getElementById('phc-sign-name').textContent = doctorProfile.name;
+        document.getElementById('phc-sign-reg').textContent = doctorProfile.reg;
+      } else if (mode === 'rx') {
+        document.getElementById('prx-clinic').textContent = doctorProfile.clinic;
+        document.getElementById('prx-doc').textContent = doctorProfile.name;
+        document.getElementById('prx-sub').textContent = `${doctorProfile.specialty} • ${doctorProfile.reg}`;
+        document.getElementById('prx-date').textContent = fmtDate;
+        document.getElementById('prx-pt').textContent = pt;
+        document.getElementById('prx-cied').textContent = `${ci} / ${age}`;
+        document.getElementById('prx-diag').textContent = fullDx;
+        document.getElementById('prx-meds').innerHTML = currentRx.map((m, i) => `<div class="border-b border-slate-200 pb-1"><p class="font-bold">${i + 1}. ${escapeHTML(m.name)} ${escapeHTML(m.conc)} (${escapeHTML(m.form)}) — Cant: ${escapeHTML(m.qty)}</p><p class="pl-3">${escapeHTML(m.dose)}, ${escapeHTML(m.route)}, ${escapeHTML(m.freq)}. ${escapeHTML(m.manner)}</p></div>`).join('');
+        document.getElementById('prx-notes').textContent = document.getElementById('rx-notes').value || '--';
+        document.getElementById('prx-sign-name').textContent = doctorProfile.name;
+        document.getElementById('prx-sign-reg').textContent = doctorProfile.reg;
+      } else if (mode === 'lab') {
+        document.getElementById('plab-clinic').textContent = doctorProfile.clinic;
+        document.getElementById('plab-doc').textContent = doctorProfile.name;
+        document.getElementById('plab-date').textContent = fmtDate;
+        document.getElementById('plab-pt').textContent = `${pt} (CI: ${ci})`;
+        document.getElementById('plab-diag').textContent = fullDx;
+        document.getElementById('plab-items').innerHTML = Array.from(document.querySelectorAll('.lab-chk:checked')).map(c => `<p>☑ ${escapeHTML(c.value)}</p>`).join('') + (document.getElementById('lab-other').value ? `<p>☑ ${escapeHTML(document.getElementById('lab-other').value)}</p>` : '');
+        document.getElementById('plab-ind').textContent = document.getElementById('lab-ind').value;
+        document.getElementById('plab-sign-name').textContent = doctorProfile.name;
+      } else if (mode === 'img') {
+        document.getElementById('pimg-clinic').textContent = doctorProfile.clinic;
+        document.getElementById('pimg-doc').textContent = doctorProfile.name;
+        document.getElementById('pimg-date').textContent = fmtDate;
+        document.getElementById('pimg-pt').textContent = `${pt} (CI: ${ci})`;
+        document.getElementById('pimg-diag').textContent = fullDx;
+        document.getElementById('pimg-items').innerHTML = Array.from(document.querySelectorAll('.img-chk:checked')).map(c => `<p>☑ ${escapeHTML(c.value)}</p>`).join('') + (document.getElementById('img-other').value ? `<p>☑ ${escapeHTML(document.getElementById('img-other').value)}</p>` : '');
+        document.getElementById('pimg-sign-name').textContent = doctorProfile.name;
+      } else if (mode === 'cert') {
+        document.getElementById('pcert-clinic').textContent = doctorProfile.clinic;
+        document.getElementById('pcert-doc').textContent = `${doctorProfile.name} • ${doctorProfile.reg}`;
+        document.getElementById('pcert-date').textContent = fmtDate;
+        document.getElementById('pcert-title').textContent = document.getElementById('cert-type').value.toUpperCase();
+        document.getElementById('pcert-body').textContent = document.getElementById('cert-text').value;
+        document.getElementById('pcert-sign-name').textContent = doctorProfile.name;
+        document.getElementById('pcert-sign-reg').textContent = doctorProfile.reg;
+      } else if (mode === 'ref') {
+        document.getElementById('pref-clinic').textContent = `${doctorProfile.clinic} • ${doctorProfile.name}`;
+        document.getElementById('pref-date').textContent = fmtDate;
+        document.getElementById('pref-prio').textContent = document.getElementById('ref-priority').value;
+        document.getElementById('pref-hosp').textContent = document.getElementById('ref-hospital').value || '--';
+        document.getElementById('pref-serv').textContent = document.getElementById('ref-service').value || '--';
+        document.getElementById('pref-pt').textContent = `${pt} (CI: ${ci}, Edad: ${age})`;
+        document.getElementById('pref-vitals').textContent = `PA ${document.getElementById('vs-pas').value || '--'}/${document.getElementById('vs-pad').value || '--'} mmHg, FC ${document.getElementById('vs-hr').value || '--'} lpm, Temp ${document.getElementById('vs-temp').value || '--'}°C`;
+        document.getElementById('pref-summary').textContent = document.getElementById('ref-summary').value;
+        document.getElementById('pref-diag').textContent = fullDx;
+        document.getElementById('pref-tx').textContent = document.getElementById('ref-initial-tx').value || 'Ninguno';
+        document.getElementById('pref-trans').textContent = document.getElementById('ref-transport').value;
+        document.getElementById('pref-sign-name').textContent = doctorProfile.name;
+        document.getElementById('pref-sign-reg').textContent = doctorProfile.reg;
+      } else if (mode === 'consent') {
+        document.getElementById('pcon-clinic').textContent = doctorProfile.clinic;
+        document.getElementById('pcon-doc').textContent = doctorProfile.name;
+        document.getElementById('pcon-date').textContent = fmtDate;
+        document.getElementById('pcon-body').textContent = document.getElementById('consent-body').value;
+        document.getElementById('pcon-pt-sign').textContent = `${pt} — CI: ${ci}`;
+        document.getElementById('pcon-sign-name').textContent = doctorProfile.name;
+      } else if (mode === 'eco') {
+        document.getElementById('peco-clinic').textContent = doctorProfile.clinic;
+        document.getElementById('peco-doc').textContent = `${doctorProfile.name} • ${doctorProfile.reg}`;
+        document.getElementById('peco-title').textContent = document.getElementById('eco-template-select').value.toUpperCase();
+        document.getElementById('peco-date').textContent = fmtDate;
+        document.getElementById('peco-pt').textContent = `${pt} (CI: ${ci}, Edad: ${age})`;
+        document.getElementById('peco-req').textContent = document.getElementById('eco-requester').value;
+        document.getElementById('peco-find').textContent = document.getElementById('eco-findings').value;
+        document.getElementById('peco-conc').textContent = document.getElementById('eco-conclusion').value;
+        document.getElementById('peco-sign-name').textContent = doctorProfile.name;
+        document.getElementById('peco-sign-reg').textContent = doctorProfile.reg;
+      }
+
+      window.print();
+    }
+
+    function showToast(msg, type = 'success') {
+      const box = document.getElementById('toast-container');
+      const el = document.createElement('div');
+      el.className = `${type === 'error' ? 'bg-rose-600' : 'bg-slate-900'} text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-bold transition-opacity duration-300`;
+      el.textContent = msg;
+      box.appendChild(el);
+      setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 3000);
+    }
+
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+  </script>
+</body>
+</html>
